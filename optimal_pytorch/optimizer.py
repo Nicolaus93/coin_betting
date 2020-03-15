@@ -1,7 +1,7 @@
 """
 This is adapted from https://github.com/pytorch/pytorch/blob/master/torch/optim/optimizer.py
 
-Created on Tue Feb 11 12:29:56 2020
+Created on Feb 11th, 2020
 
 @author: Zhenxun Zhuang
 """
