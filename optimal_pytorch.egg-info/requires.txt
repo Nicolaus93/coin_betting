@@ -1,6 +1,0 @@
-future
-tqdm
-numpy
-argparse
-torch>=1.0
-matplotlib>=1.5.2
