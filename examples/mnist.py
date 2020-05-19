@@ -126,11 +126,9 @@ def main():
     conf = Config()
     train_loader, test_loader = prepare_data(conf)
     for e in range(conf.epochs):
-        running_loss = 0
         for i, data in enumerate(train_loader, 0):
             # Take one training step.
             entropy_loss = train_step(device, net, optimizer, loss, data)
-            running_loss += entropy_loss.item()
             if (i % 200 == 199):
                 test_outputs(device, net, loss, train_loader, i+1, True)
         # Check the performance of network on test/validation set
