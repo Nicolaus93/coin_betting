@@ -124,17 +124,17 @@ def main():
     loss = nn.CrossEntropyLoss()
     optimizer = Adam(net.parameters(), lr=0.001)
     conf = Config()
-    trainloader, testloader = prepare_data(conf)
+    train_loader, test_loader = prepare_data(conf)
     for e in range(conf.epochs):
         running_loss = 0
-        for i, data in enumerate(trainloader, 0):
+        for i, data in enumerate(train_loader, 0):
             # Take one training step.
             entropy_loss = train_step(device, net, optimizer, loss, data)
             running_loss += entropy_loss.item()
             if (i % 200 == 199):
-                test_outputs(device, net, loss, testloader, i+1, True)
+                test_outputs(device, net, loss, train_loader, i+1, True)
         # Check the performance of network on test/validation set
-        test_outputs(device, net, loss, testloader, e)
+        test_outputs(device, net, loss, test_loader, e)
 
 
 if __name__ == '__main__':
