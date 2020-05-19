@@ -19,8 +19,9 @@ setup(
         'tqdm',
         'numpy',
         'argparse',
+        'yapf',
         'torch>=1.0',
-        'matplotlib>=1.5.2'
+        'matplotlib>=1.5.2',
     ],
     classifiers=[
         'Development Status :: 2 - Pre-alpha',
