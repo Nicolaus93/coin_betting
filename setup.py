@@ -22,6 +22,7 @@ setup(
         'yapf',
         'torch>=1.0',
         'matplotlib>=1.5.2',
+        'line_profiler'
     ],
     classifiers=[
         'Development Status :: 2 - Pre-alpha',
