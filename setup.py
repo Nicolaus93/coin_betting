@@ -21,6 +21,7 @@ setup(
         'argparse',
         'yapf',
         'torch>=1.0',
+        'torchvision>=0.2.2'
         'matplotlib>=1.5.2',
         'line_profiler'
     ],
