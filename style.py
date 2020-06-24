@@ -9,6 +9,8 @@ for file in glob.glob('examples/*.py'):
     files.append(file)
 for file in glob.glob('tests/*.py'):
     files.append(file)
+for file in glob.glob('experimental/*.py'):
+    files.append(file)
 
 # Add  for recursively doing for every python file or if given a list
 for ele in files:
