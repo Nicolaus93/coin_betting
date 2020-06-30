@@ -9,6 +9,7 @@ Created on Feb 11th, 2020
 import math
 import torch
 from .optimizer import Optimizer
+from .types import Params, Betas2, LossClosure, Optional
 
 
 class Adam(Optimizer):
@@ -34,13 +35,15 @@ class Adam(Optimizer):
     .. _On the Convergence of Adam and Beyond:
         https://openreview.net/forum?id=ryQu7f-RZ
     """
-    def __init__(self,
-                 params,
-                 lr=1e-3,
-                 betas=(0.9, 0.999),
-                 eps=1e-8,
-                 weight_decay=0,
-                 amsgrad=False):
+    def __init__(
+        self,
+        params: Params,
+        lr: float = 1e-3,
+        betas: Betas2 = (0.9, 0.999),
+        eps: float = 1e-8,
+        weight_decay: float = 0,
+        amsgrad: bool = False
+    ) -> None:
         if not 0.0 <= lr:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if not 0.0 <= eps:
@@ -63,7 +66,10 @@ class Adam(Optimizer):
         for group in self.param_groups:
             group.setdefault('amsgrad', False)
 
-    def step(self, closure=None):
+    def step(
+        self,
+        closure: Optional[LossClosure] = None
+    ) -> Optional[float]:
         """Performs a single optimization step.
 
         Arguments:
