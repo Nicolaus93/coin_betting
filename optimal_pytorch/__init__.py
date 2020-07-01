@@ -3,7 +3,6 @@ Created on Tue Feb 11th, 2020
 
 @author: Zhenxun Zhuang
 """
-
 """
 :mod:`optimal_pytorch` is a package implementing various optimization algorithms.
 The interface is consistent with the torch.optim package.

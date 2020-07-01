@@ -1,6 +1,6 @@
 import copy
 from torch.optim.optimizer import Optimizer
-from .types import LossClosure, Params
+from .types import LossClosure, Params, Optional
 
 
 __all__ = ('AccSGD',)
