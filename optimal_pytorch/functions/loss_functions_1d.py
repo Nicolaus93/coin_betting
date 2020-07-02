@@ -45,6 +45,7 @@ class absolute_loss(generic_loss):
         self.b = (self.xs + self.xe) / 2
         self.a = opt['slope']
         self.c = opt['offset'] - self.a * abs(self.xe - self.b)
+        self.name = "abs_loss"
 
     def get_minima(self) -> torch_float:
         return self.b
@@ -83,6 +84,7 @@ class quadratic_loss(generic_loss):
         self.b = (self.xs + self.xe) / 2
         self.a = -self.slope / (2 * (self.xs - self.b))
         self.c = opt['offset'] - self.a * ((self.xs - self.b)**2)
+        self.name = "quadratic_loss"
 
     def get_minima(self) -> torch_float:
         return self.b
@@ -111,6 +113,7 @@ class sinusoidal_loss(generic_loss):
 
     def __init__(self, opt):
         self.opt = opt
+        self.name = "sinusoidal_loss"
 
     def get_minima(self) -> torch_float:
         return torch.tensor(7.9787, dtype=torch_float)
@@ -127,6 +130,7 @@ class synthetic_loss(generic_loss):
 
     def __init__(self, opt):
         self.opt = opt
+        self.name = "synthetic_loss"
 
     def get_minima(self) -> torch_float:
         return torch.tensor(0.5, dtype=torch_float)
@@ -153,6 +157,7 @@ class gaussian_loss(generic_loss):
         self.sd = opt['sd'] if ('sd' in opt) else torch.tensor(
             1, dtype=torch_float)
         self.coeff = 1 / (self.sd * (2 * pi)**0.5)
+        self.name = "gaussian_loss"
 
     def get_minima(self) -> float:
         return self.mu
