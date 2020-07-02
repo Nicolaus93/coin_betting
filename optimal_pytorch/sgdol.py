@@ -5,15 +5,17 @@ Created on Mar 14th, 2020
 """
 
 from .optimizer import Optimizer
+from .types import Params, LossClosure, Optional, State
+
 
 class SGDOL(Optimizer):
     r"""Implement the SGDOL Algorithm.
-    
+
     Description:
-    This algorithm was proposed in "Surrogate Losses for Online Learning of 
+    This algorithm was proposed in "Surrogate Losses for Online Learning of
     Stepsizes in Stochastic Non-Convex Optimization" which can be checked out
     at: https://arxiv.org/abs/1901.09068
-    
+
     The online learning algorithm used here is
     "Follow-The-Regularized-Leader-Proximal" as described in the paper.
 
@@ -27,32 +29,39 @@ class SGDOL(Optimizer):
     - weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
     """
 
-    def __init__(self, params, smoothness=10.0, alpha=10.0, weight_decay=0):
+    def __init__(
+        self,
+        params: Params,
+        smoothness: float = 10.0,
+        alpha: float = 10.0,
+        weight_decay: float = 0
+    ) -> None:
         if smoothness < 0.0:
             raise ValueError("Invalid smoothness value: {}".format(smoothness))
         if alpha < 0.0:
             raise ValueError("Invalid alpha value: {}".format(alpha))
         if weight_decay < 0.0:
-            raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
+            raise ValueError(
+                "Invalid weight_decay value: {}".format(weight_decay))
 
         defaults = dict(weight_decay=weight_decay)
         super(SGDOL, self).__init__(params, defaults)
 
         self._alpha = alpha
         self._smoothness = smoothness
-        
+
         # Indicate whether we have obtained two stochastic gradients.
-        self._is_first_grad = True 
-        
+        self._is_first_grad = True
+
         # Initialization.
         self._sum_inner_prods = alpha
         self._sum_grad_normsq = alpha
         self._lr = 1.0 / smoothness
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: State) -> None:
         super(SGDOL, self).__setstate__(state)
 
-    def step(self, closure=None):
+    def step(self, closure: Optional[LossClosure] = None) -> Optional[float]:
         """Performs a single optimization step.
 
         Arguments:
@@ -69,7 +78,7 @@ class SGDOL(Optimizer):
             for group in self.param_groups:
                 weight_decay = group['weight_decay']
 
-                for p in group['params']:                    
+                for p in group['params']:
                     state = self.state[p]
 
                     if p.grad is None:
@@ -104,12 +113,12 @@ class SGDOL(Optimizer):
                         continue
 
                     first_grad = state['first_grad']
-                    
+
                     # Accumulate ||g_t||^2_2.
                     first_grad_norm = first_grad.norm()
                     first_grad_normsq = first_grad_norm * first_grad_norm
                     self._sum_grad_normsq += float(first_grad_normsq)
-                    
+
                     # Accumulate <g_t, g'_t>.
                     cip = second_grad.view(-1).dot(first_grad.view(-1))
                     self._sum_inner_prods += float(cip)
@@ -118,7 +127,7 @@ class SGDOL(Optimizer):
             lr = self._lr
             smoothness = self._smoothness
             lr_next = self._sum_inner_prods / (smoothness * self._sum_grad_normsq)
-            lr_next = max(min(lr_next, 2.0/smoothness), 0.0)
+            lr_next = max(min(lr_next, 2.0 / smoothness), 0.0)
             self._lr = lr_next
 
             # Update the parameters.

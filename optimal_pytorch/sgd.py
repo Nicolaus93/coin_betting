@@ -8,6 +8,7 @@ Created on Feb 11th, 2020
 
 import torch
 from .optimizer import Optimizer, required
+from .types import Params, LossClosure, Optional
 
 
 class SGD(Optimizer):
@@ -55,13 +56,15 @@ class SGD(Optimizer):
 
         The Nesterov version is analogously modified.
     """
-    def __init__(self,
-                 params,
-                 lr=required,
-                 momentum=0,
-                 dampening=0,
-                 weight_decay=0,
-                 nesterov=False):
+    def __init__(
+        self,
+        params: Params,
+        lr: float = required,
+        momentum: float = 0,
+        dampening: float = 0,
+        weight_decay: float = 0,
+        nesterov: bool = False
+    ) -> None:
         if lr is not required and lr < 0.0:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if momentum < 0.0:
@@ -85,7 +88,10 @@ class SGD(Optimizer):
         for group in self.param_groups:
             group.setdefault('nesterov', False)
 
-    def step(self, closure=None):
+    def step(
+        self,
+        closure: Optional[LossClosure] = None
+    ) -> Optional[float]:
         """Performs a single optimization step.
 
         Arguments:
