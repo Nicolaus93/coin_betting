@@ -25,8 +25,8 @@ class NovoGrad(Optimizer):
             algorithm from the paper `On the Convergence of Adam and Beyond`_
             (default: False)
     Example:
-        >>> import torch_optimizer as optim
-        >>> optimizer = optim.Yogi(model.parameters(), lr=0.1)
+        >>> import optimal_pytorch as optim
+        >>> optimizer = optim.Novograd(model.parameters(), lr=0.1)
         >>> optimizer.zero_grad()
         >>> loss_fn(model(input), target).backward()
         >>> scheduler = StepLR(optimizer, step_size=1, gamma=0.7)

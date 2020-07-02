@@ -22,7 +22,7 @@ class DiffGrad(Optimizer):
             numerical stability (default: 1e-8)
         weight_decay: weight decay (L2 penalty) (default: 0)
     Example:
-        >>> import torch_optimizer as optim
+        >>> import optimal_pytorch as optim
         >>> optimizer = optim.DiffGrad(model.parameters(), lr=0.1)
         >>> optimizer.zero_grad()
         >>> loss_fn(model(input), target).backward()

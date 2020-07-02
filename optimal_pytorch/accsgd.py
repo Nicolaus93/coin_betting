@@ -20,7 +20,7 @@ class AccSGD(Optimizer):
         small_const: any value <=1 (default: 0.7)
         weight_decay: weight decay (L2 penalty) (default: 0)
     Example:
-        >>> import torch_optimizer as optim
+        >>> import optimal_pytorch as optim
         >>> optimizer = optim.AccSGD(model.parameters(), lr=0.1)
         >>> optimizer.zero_grad()
         >>> loss_fn(model(input), target).backward()

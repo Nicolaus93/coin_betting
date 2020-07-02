@@ -19,7 +19,7 @@ class SGDW(Optimizer):
         dampening: dampening for momentum (default: 0)
         nesterov: enables Nesterov momentum (default: False)
     Example:
-        >>> import torch_optimizer as optim
+        >>> import optimal_pytorch as optim
         >>> optimizer = optim.SGDW(model.parameters(), lr=0.1, momentum=0.9)
         >>> optimizer.zero_grad()
         >>> loss_fn(model(input), target).backward()

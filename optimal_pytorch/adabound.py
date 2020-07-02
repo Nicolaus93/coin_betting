@@ -26,7 +26,7 @@ class AdaBound(Optimizer):
         weight_decay: weight decay (L2 penalty) (default: 0)
         amsbound: whether to use the AMSBound variant of this algorithm
     Example:
-        >>> import torch_optimizer as optim
+        >>> import optimal_pytorch as optim
         >>> optimizer = optim.AdaBound(model.parameters(), lr=0.1)
         >>> optimizer.zero_grad()
         >>> loss_fn(model(input), target).backward()

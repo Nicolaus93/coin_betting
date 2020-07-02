@@ -19,7 +19,7 @@ class Lookahead(Optimizer):
         alpha: linear interpolation factor. 1.0 recovers the inner optimizer.
             (default: 5)
     Example:
-        >>> import torch_optimizer as optim
+        >>> import optimal_pytorch as optim
         >>> yogi = optim.Yogi(model.parameters(), lr=0.1)
         >>> optimizer = optim.Lookahead(yogi, k=5, alpha=0.5)
         >>> optimizer.zero_grad()
