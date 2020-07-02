@@ -7,15 +7,15 @@ from typing import NewType
 torch_float = NewType('torch_float', torch.float)
 
 
-class generic_loss(ABC):
+class GenericLoss(ABC):
     """
     Each loss function should have 2 methods:
-     - get_minima, which returns the minimum value of that function
-     - forward, which returns a loss value based on the input they receive.
+     - get_minima:  returns the minimum value of that function
+     - forward:     returns a loss value based on the input they receive.
     """
 
     @abstractmethod
-    def get_minima(self) -> torch_float:
+    def get_minima(self) -> torch.float:
         pass
 
     @abstractmethod
@@ -23,7 +23,7 @@ class generic_loss(ABC):
         pass
 
 
-class absolute_loss(generic_loss):
+class AbsoluteLoss(GenericLoss):
     """
     Absolute loss Function in 1d.
     f(x) = a * |x - b| + c.
@@ -58,10 +58,18 @@ class absolute_loss(generic_loss):
         return loss
 
     def __repr__(self) -> str:
-        return "Absolute loss function in 1d."
+        res = "Absolute loss function in 1d:\n\tf(x) = {:.2f} * |x - {}|".format(
+            self.a, self.b)
+        # following: same can happen for b?
+        if self.c > 0:
+            return res + " + {}".format(self.c)
+        elif self.c < 0:
+            return res + " - {}".format(abs(self.c))
+        else:
+            return res
 
 
-class quadratic_loss(generic_loss):
+class QuadraticLoss(GenericLoss):
     """
     Quadratic loss function in 1d.
     f(x) = a * (x - b)^2 + c.
@@ -105,46 +113,58 @@ class quadratic_loss(generic_loss):
             return res
 
 
-class sinusoidal_loss(generic_loss):
+class SinusoidalLoss(GenericLoss):
     """
     Function defined in http://infinity77.net/global_optimization/test_functions_1d.html
     f(x) = -x * sin(x), for x in [0, 10].
     """
 
-    def __init__(self, opt):
-        self.opt = opt
+    def __init__(self, opt: Mapping[str, float]) -> None:
+        if opt['xs'] >= opt['xe']:
+            raise ValueError('xs value greater than xe')
+        self.xs = opt['xs']
+        self.xe = opt['xe']
         self.name = "sinusoidal_loss"
 
     def get_minima(self) -> torch_float:
-        return torch.tensor(7.9787, dtype=torch_float)
+        return torch.tensor(7.9787, dtype=torch.float)
 
     def forward(self, x: torch.tensor) -> torch.tensor:
         loss = -x * torch.sin(x)
         return loss
 
+    def __repr__(self) -> str:
+        return "f(x) = -x * sin(x), for x in [0, 10]."
 
-class synthetic_loss(generic_loss):
+
+class SyntheticLoss(GenericLoss):
     """
     Synthetic function defined in https://arxiv.org/pdf/1912.01823.pdf
     """
 
-    def __init__(self, opt):
-        self.opt = opt
+    def __init__(self, opt: Mapping[str, float]) -> None:
+        if opt['xs'] >= opt['xe']:
+            raise ValueError('xs value greater than xe')
+        self.xs = opt['xs']
+        self.xe = opt['xe']
         self.name = "synthetic_loss"
 
     def get_minima(self) -> torch_float:
-        return torch.tensor(0.5, dtype=torch_float)
+        return torch.tensor(0.5, dtype=torch.float)
 
     def forward(self, x: torch.tensor) -> torch.tensor:
-        temp = torch.rand(1, dtype=torch_float)
+        temp = torch.rand(1, dtype=torch.float)
         if (temp < 0.002):
             loss = 999 * (x**2) / 2
         else:
             loss = -x
         return loss
 
+    def __repr__(self) -> str:
+        return "Synthetic function defined in https://arxiv.org/pdf/1912.01823.pdf"
 
-class gaussian_loss(generic_loss):
+
+class GaussianLoss(GenericLoss):
     """
     Inverted gaussian pdf
     mu = mean for the gaussian function pdf
@@ -152,17 +172,24 @@ class gaussian_loss(generic_loss):
     """
 
     def __init__(self, opt: Mapping[str, torch_float]) -> None:
+        if opt['xs'] >= opt['xe']:
+            raise ValueError('xs value greater than xe')
+        self.xs = opt['xs']
+        self.xe = opt['xe']
         self.mu = opt['mu'] if ('mu' in opt) else torch.tensor(
-            0, dtype=torch_float)  # some default value
+            0, dtype=torch.float)  # some default value
         self.sd = opt['sd'] if ('sd' in opt) else torch.tensor(
-            1, dtype=torch_float)
+            1, dtype=torch.float)
         self.coeff = 1 / (self.sd * (2 * pi)**0.5)
         self.name = "gaussian_loss"
 
     def get_minima(self) -> float:
         return self.mu
 
-    def forward(self, x):
+    def forward(self, x: torch.tensor) -> torch.tensor:
         exp_coeff = -0.5 * (((x - self.mu) / self.sd)**2)
         loss = -self.coeff * torch.exp(exp_coeff)
         return loss
+
+    def __repr__(self) -> str:
+        return r"Inverted Gaussian loss function.\n\tf(x) \propto exp(-0.5((x - \mu) / \sigma)^2)."
