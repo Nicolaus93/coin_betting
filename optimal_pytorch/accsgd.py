@@ -30,6 +30,13 @@ class AccSGD(Optimizer):
     Note:
         Reference code: https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/accsgd.py
     """
+    DEFAULT = {
+        "lr": 1e-3,
+        "kappa": 1000.0,
+        "xi": 10.0,
+        "small_const": 0.7,
+        "weight_decay": 0
+    }
 
     def __init__(
         self,

@@ -27,6 +27,11 @@ class Lookahead(Optimizer):
         >>> optimizer.step()
     __ https://arxiv.org/abs/1907.08610
     """
+    DEFAULT = {
+        "optimizer": "SGD",
+        "k": 5,
+        "alpha": 0.5
+    }
 
     def __init__(
         self, optimizer: Optimizer, k: int = 5, alpha: float = 0.5

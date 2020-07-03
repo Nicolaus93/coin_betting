@@ -34,6 +34,14 @@ class NovoGrad(Optimizer):
         >>> scheduler.step()
     __ https://arxiv.org/abs/1905.11286
     """
+    DEFAULT = {
+        "lr": 1e-3,
+        "betas": (0.95, 0),
+        "eps": 1e-8,
+        "weight_decay": 0,
+        "grad_averaging": False,
+        "amsgrad": False
+    }
 
     def __init__(
         self,

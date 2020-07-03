@@ -35,6 +35,14 @@ class Adam(Optimizer):
     .. _On the Convergence of Adam and Beyond:
         https://openreview.net/forum?id=ryQu7f-RZ
     """
+    DEFAULT = {
+        "lr": 1e-3,
+        "betas": (0.9, 0.999),
+        "eps": 1e-8,
+        "weight_decay": 0,
+        "amsgrad": False
+    }
+
     def __init__(
         self,
         params: Params,

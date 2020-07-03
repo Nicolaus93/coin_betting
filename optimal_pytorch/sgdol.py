@@ -28,6 +28,7 @@ class SGDOL(Optimizer):
           regularizer (default: 10)
     - weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
     """
+    DEFAULT = {"smoothness": 10.0, "alpha": 10.0, "weight_decay": 0}
 
     def __init__(
         self,

@@ -32,6 +32,13 @@ class Yogi(Optimizer):
         >>> optimizer.step()
     __ https://papers.nips.cc/paper/8186-adaptive-methods-for-nonconvex-optimization  # noqa
     """
+    DEFAULT = {
+        "lr": 1e-2,
+        "betas": (0.9, 0.999),
+        "eps": 1e-3,
+        "initial_accumulator": 1e-6,
+        "weight_decay": 0.0
+    }
 
     def __init__(
         self,

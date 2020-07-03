@@ -29,6 +29,12 @@ class RAdam(Optimizer):
         >>> optimizer.step()
     __ https://arxiv.org/abs/1908.03265
     """
+    DEFAULT = {
+        "lr": 1e-3,
+        "betas": (0.9, 0.999),
+        "eps": 1e-8,
+        "weight_decay": 0.0
+    }
 
     def __init__(
         self,

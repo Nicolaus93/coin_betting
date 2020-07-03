@@ -35,6 +35,15 @@ class AdaBound(Optimizer):
     Note:
         Reference code: https://github.com/Luolc/AdaBound
     """
+    DEFAULT = {
+        "lr": 1e-3,
+        "betas": (0.9, 0.999),
+        "final_lr": 0.1,
+        "gamma": 1e-3,
+        "eps": 1e-8,
+        "weight_decay": 0,
+        "amsbound": False
+    }
 
     def __init__(
         self,
