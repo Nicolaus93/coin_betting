@@ -8,6 +8,7 @@ from .optimizer import Optimizer
 from .types import Params, LossClosure, Optional, State
 
 
+
 class SGDOL(Optimizer):
     r"""Implement the SGDOL Algorithm.
 
@@ -28,14 +29,7 @@ class SGDOL(Optimizer):
           regularizer (default: 10)
     - weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
     """
-
-    def __init__(
-        self,
-        params: Params,
-        smoothness: float = 10.0,
-        alpha: float = 10.0,
-        weight_decay: float = 0
-    ) -> None:
+    def __init__(self, params, smoothness=10.0, alpha=10.0, weight_decay=0):
         if smoothness < 0.0:
             raise ValueError("Invalid smoothness value: {}".format(smoothness))
         if alpha < 0.0:

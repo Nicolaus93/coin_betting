@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import optimal_pytorch
 import argparse
-
+from Data import config
 # Checking if gpu exists.
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #for reproducibility
@@ -19,18 +19,6 @@ if (REPRODUCIBLE):
     if device == torch.device('cuda:0'):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
-
-
-class Config():
-    def __init__(self,
-                 batch_size=60,
-                 test_batch_size=1000,
-                 lr=1e-3,
-                 epochs=10):
-        self.batch_size = batch_size
-        self.test_batch_size = test_batch_size
-        self.lr = lr
-        self.epochs = epochs
 
 
 class Net(nn.Module):
@@ -57,22 +45,25 @@ class Net(nn.Module):
 
 
 def prepare_data(config, n_workers):
-    transform = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize((0.1307, ), (0.3081, ))])
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.1307, ), (0.3081, ))
+    ])  # 0.1307 and 0.3081 are the mean and std of MNIST
 
     # Preparing training set in the data folder.
-    trainset = torchvision.datasets.MNIST(root='./data',
-                                          train=True,
-                                          download=True,
-                                          transform=transform)
+    trainset = torchvision.datasets.MNIST(
+        root='../Data',
+        train=True,
+        download=True,
+        transform=transform,
+    )
     trainloader = torch.utils.data.DataLoader(trainset,
                                               batch_size=config.batch_size,
                                               shuffle=True,
                                               num_workers=n_workers)
 
     # Preparing test set in the data folder.
-    testset = torchvision.datasets.MNIST(root='./data',
+    testset = torchvision.datasets.MNIST(root='../Data',
                                          train=False,
                                          download=True,
                                          transform=transform)
@@ -108,6 +99,7 @@ def train_step(device, model, optimizer, loss, data, i):
     return entropy_loss
 
 
+# Test the model on test set.
 def test_outputs(device, model, loss, test_loader, epoch, istrain=False):
     test_loss = 0
     correct = 0
@@ -162,7 +154,7 @@ def main():
         optimizer = getattr(optimal_pytorch, opt)(net.parameters())
     else:
         optimizer = getattr(optimal_pytorch, opt)(net.parameters(), lr=0.001)
-    conf = Config()
+    conf = config.MNIST_Config()
     train_loader, test_loader = prepare_data(conf, 2)
     for e in range(conf.epochs):
         for i, data in enumerate(train_loader, 0):
