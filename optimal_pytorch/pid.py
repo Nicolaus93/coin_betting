@@ -18,7 +18,7 @@ class PID(Optimizer):
         derivative: D part of the PID (default: 10.0)
         integral: I part of the PID (default: 5.0)
     Example:
-        >>> import torch_optimizer as optim
+        >>> import optimal_pytorch as optim
         >>> optimizer = optim.PID(model.parameters(), lr=0.001, momentum=0.1)
         >>> optimizer.zero_grad()
         >>> loss_fn(model(input), target).backward()

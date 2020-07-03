@@ -26,7 +26,7 @@ class Lamb(Optimizer):
             into Adam. Useful for comparison purposes. (default: False)
         debias: debias adam by (1 - beta**step) (default: False)
     Example:
-        >>> import torch_optimizer as optim
+        >>> import optimal_pytorch as optim
         >>> optimizer = optim.Lamb(model.parameters(), lr=0.1)
         >>> optimizer.zero_grad()
         >>> loss_fn(model(input), target).backward()

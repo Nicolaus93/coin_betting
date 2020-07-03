@@ -24,7 +24,7 @@ class Yogi(Optimizer):
             second moments (default: 1e-6)
         weight_decay: weight decay (L2 penalty) (default: 0)
     Example:
-        >>> import torch_optimizer as optim
+        >>> import optimal_pytorch as optim
         >>> optimizer = optim.Yogi(model.parameters(), lr=0.01, betas=(0.9, 0.999), 
                 eps=1e-3, initial_accumulator=1e-6)
         >>> optimizer.zero_grad()
