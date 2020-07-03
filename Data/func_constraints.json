@@ -1,0 +1,30 @@
+{   "loss_absolute":{
+        "params": ["xs", "xe", "fs", "fprime"],
+        "scaling":[0, 10],
+        "limit":[["xs", 0, 1], ["xe", 0, 1]],
+        "max_iterations": 1e4
+    },
+    "loss_quadratic":{
+        "params": ["xs", "xe", "fs", "fprime"],
+        "scaling":[0, 10],
+        "limit":[["xs", 0, 1], ["xe", 0, 1]],
+        "max_iterations":1e4
+    },
+    "loss_gaussian": {
+        "params": ["mu", "sd"],
+        "scaling": [0, 5],
+        "limit":[["mu", "sd", 2], ["mu", "sd", 2]],
+        "max_iterations":1e4
+
+    },
+    "loss_x_sinx": {
+        "scaling":[0, 10],
+        "max_iterations": 1e4,
+        "limit":[[0, 0, 1], [10, 0, 1]]
+    },
+    "loss_synthetic_func": {
+        "scaling":[0, 1],
+        "max_iterations": 1e6,
+        "limit":[[0, 0, 1], [1, 0, 1]]
+    }
+}

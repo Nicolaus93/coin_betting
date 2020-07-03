@@ -1,4 +1,8 @@
 optimal_pytorch.egg-info/
-examples/data/
-tests/data/
+examples/__pycache/
+tests/__pycache__/
 optimal_pytorch/__pycache__/
+__pycache__/
+Data/__pycache__/
+Data/MNIST/
+experimenta/__pycache__/

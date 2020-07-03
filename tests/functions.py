@@ -5,15 +5,14 @@ from matplotlib import pyplot as plt
 from optimal_pytorch import *
 import time
 """
-1. Define Class names as : 'loss_' + func_name for pattern matching when generating list of all functions.
+1. Class names are defined as : 'loss_' + func_name for pattern matching when generating list of all functions.
 2. Each loss function should have 2 methods get_minima and forward which returns the minimum value of that function and returns a loss value
 based on the input they receive.
 3. Pass the config to calculate any coefficients while initializing the class in the __init__ method.
 """
 
+
 # xs = starting point, xe = ending point, fprime = value of gradient at starting point, fs = value of function at ending point
-
-
 # Quadratic function
 class loss_quadratic:
     def __init__(self, opt):
@@ -88,7 +87,7 @@ class loss_gaussian:
 
 # -xsin(x) for x in [0, 10] defined in http://infinity77.net/global_optimization/test_functions_1d.html
 class loss_x_sinx:
-    def __init__(self, opt):
+    def __init__(self, opt={}):
         self.opt = opt
 
     def get_minima(self):
@@ -101,7 +100,7 @@ class loss_x_sinx:
 
 # synthetic function defined in https://arxiv.org/pdf/1912.01823.pdf
 class loss_synthetic_func:
-    def __init__(self, opt):
+    def __init__(self, opt={}):
         self.opt = opt
 
     def get_minima(self):

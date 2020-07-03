@@ -1,3 +1,11 @@
+import json
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+import sys
+import argparse
+from typing import Sequence, Mapping
+from collections import Counter
 """Color coding used to plot the graphs
 red = if diff between reached and optimal solution is more than 0.5
 blue = if diff between reached and optimal solution is between 0.1 and 0.5
@@ -9,16 +17,6 @@ green + blue => orange, when green and blue are obtained in equal proportions in
 
 in all other cases the color which occurs max number of times is plotted
 """
-
-import json
-import numpy as np
-import matplotlib.pyplot as plt
-import os
-import sys
-import argparse
-from typing import Sequence, Mapping
-from collections import Counter
-
 
 # Color codes for plotting graphs.
 COLOR_RGB = {
@@ -54,11 +52,13 @@ def mix_color(counter: Sequence[tuple]) -> str:
         return counter[0][0]
 
 
-def plot_results(iterations: int, save: bool = False) -> None:
+def plot_results(results_path: str,
+                 iterations: int,
+                 save: bool = False) -> None:
     """
     Function to Plots results which were saved in results/opt_results.json file
     """
-    with open('results/opt_results_' + str(iterations) + '.json') as file:
+    with open(results_path + '/logs_' + str(iterations) + '.json') as file:
         results = json.load(file)
     compiled = {}
     for opt in results:
@@ -127,9 +127,12 @@ def plot_results(iterations: int, save: bool = False) -> None:
         ax.set_title(opt + ' Results')
         fig.tight_layout()
         if save:
-            if (not os.path.exists('results/plots_' + str(iterations))):
-                os.mkdir('results/plots_' + str(iterations))
-            plt.savefig("results/plots_" + str(iterations) + '/' + opt + ".png",
+            if (not os.path.exists(results_path + '/plots_' +
+                                   str(iterations))):
+                os.makedirs(results_path + '/plots_' + str(iterations),
+                            exist_ok=True)
+            plt.savefig(results_path + '/plots_' + str(iterations) + '/' +
+                        opt + ".png",
                         bbox_inches='tight')
         else:
             plt.show()
@@ -137,10 +140,16 @@ def plot_results(iterations: int, save: bool = False) -> None:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Plot results of unit tests.')
-    parser.add_argument('-it', dest='iterations', type=int, default=500,
+    parser.add_argument('-it',
+                        dest='iterations',
+                        type=int,
+                        default=500,
                         help='select the experiment to plot.')
-    parser.add_argument('--save', dest='save', action='store_true',
-                        default=False, help="whether to save plots (default=False).")
+    parser.add_argument('--save',
+                        dest='save',
+                        action='store_true',
+                        default=False,
+                        help="whether to save plots (default=False).")
 
     args = parser.parse_args()
     iterations = args.iterations
