@@ -28,7 +28,19 @@ class SGDOL(Optimizer):
           regularizer (default: 10)
     - weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
     """
-    DEFAULT = {"smoothness": 10.0, "alpha": 10.0, "weight_decay": 0}
+    DEFAULTS = {
+        "smoothness": 10.0,
+        "alpha": 10.0,
+        "weight_decay": 0.0
+    }
+
+    def grid_search_params():
+        params = dict()
+        smoothness, alpha, weight_decay = SGDOL.DEFAULTS.values()
+        params["smoothness"] = [smoothness * 10**i for i in range(-2, 3)]
+        params["alpha"] = [0.0] + [alpha * 10**i for i in range(-1, 2)]
+        params["weight_decay"] = [0.0, 0.1]
+        return params
 
     def __init__(
         self,

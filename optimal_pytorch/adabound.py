@@ -35,15 +35,26 @@ class AdaBound(Optimizer):
     Note:
         Reference code: https://github.com/Luolc/AdaBound
     """
-    DEFAULT = {
+    DEFAULTS = {
         "lr": 1e-3,
         "betas": (0.9, 0.999),
         "final_lr": 0.1,
         "gamma": 1e-3,
         "eps": 1e-8,
-        "weight_decay": 0,
+        "weight_decay": 0.0,
         "amsbound": False
     }
+
+    def grid_search_params():
+        params = dict()
+        lr, betas, final_lr, gamma, eps, weight_decay, amsbound = AdaBound.DEFAULTS.values()
+        params["lr"] = [lr * 10**i for i in range(-2, 3)]
+        params["betas"] = [(0.9, 0.999), (0, 0.99)]
+        params["final_lr"] = [0.1, 0.01]
+        params["gamma"] = [1e-3, 1e-2]
+        params["weight_decay"] = [0, 0.1]
+        params["amsbound"] = [False, True]
+        return params
 
     def __init__(
         self,
