@@ -8,6 +8,7 @@ from .optimizer import Optimizer
 from .types import Params, LossClosure, Optional, State
 
 
+
 class SGDOL(Optimizer):
     r"""Implement the SGDOL Algorithm.
 

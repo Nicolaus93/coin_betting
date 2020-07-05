@@ -19,6 +19,7 @@ class _RequiredParameter(object):
     def __repr__(self):
         return "<required parameter>"
 
+
 required = _RequiredParameter()
 
 
@@ -36,7 +37,6 @@ class Optimizer(object):
         defaults: (dict): a dict containing default values of optimization
             options (used when a parameter group doesn't specify them).
     """
-
     def __init__(self, params, defaults):
         self.defaults = defaults
 
@@ -87,11 +87,13 @@ class Optimizer(object):
             differs between optimizer classes.
         * param_groups - a dict containing all parameter groups
         """
+
         # Save ids instead of Tensors
         def pack_group(group):
             packed = {k: v for k, v in group.items() if k != 'params'}
             packed['params'] = [id(p) for p in group['params']]
             return packed
+
         param_groups = [pack_group(g) for g in self.param_groups]
         # Remap state to use ids as keys
         packed_state = {(id(k) if isinstance(k, torch.Tensor) else k): v
@@ -120,13 +122,17 @@ class Optimizer(object):
         param_lens = (len(g['params']) for g in groups)
         saved_lens = (len(g['params']) for g in saved_groups)
         if any(p_len != s_len for p_len, s_len in zip(param_lens, saved_lens)):
-            raise ValueError("loaded state dict contains a parameter group "
-                             "that doesn't match the size of optimizer's group")
+            raise ValueError(
+                "loaded state dict contains a parameter group "
+                "that doesn't match the size of optimizer's group")
 
         # Update the state
-        id_map = {old_id: p for old_id, p in
-                  zip(chain(*(g['params'] for g in saved_groups)),
-                      chain(*(g['params'] for g in groups)))}
+        id_map = {
+            old_id: p
+            for old_id, p in zip(chain(*(
+                g['params']
+                for g in saved_groups)), chain(*(g['params'] for g in groups)))
+        }
 
         def cast(param, value):
             r"""Make a deep copy of value, casting all tensors to device of param."""
@@ -159,8 +165,10 @@ class Optimizer(object):
         def update_group(group, new_group):
             new_group['params'] = group['params']
             return new_group
+
         param_groups = [
-            update_group(g, ng) for g, ng in zip(groups, saved_groups)]
+            update_group(g, ng) for g, ng in zip(groups, saved_groups)
+        ]
         self.__setstate__({'state': state, 'param_groups': param_groups})
 
     def zero_grad(self):
@@ -196,22 +204,26 @@ class Optimizer(object):
         if isinstance(params, torch.Tensor):
             param_group['params'] = [params]
         elif isinstance(params, set):
-            raise TypeError('optimizer parameters need to be organized in ordered collections, but '
-                            'the ordering of tensors in sets will change between runs. Please use a list instead.')
+            raise TypeError(
+                'optimizer parameters need to be organized in ordered collections, but '
+                'the ordering of tensors in sets will change between runs. Please use a list instead.'
+            )
         else:
             param_group['params'] = list(params)
 
         for param in param_group['params']:
             if not isinstance(param, torch.Tensor):
                 raise TypeError("optimizer can only optimize Tensors, "
-                                "but one of the params is " + torch.typename(param))
+                                "but one of the params is " +
+                                torch.typename(param))
             if not param.is_leaf:
                 raise ValueError("can't optimize a non-leaf Tensor")
 
         for name, default in self.defaults.items():
             if default is required and name not in param_group:
-                raise ValueError("parameter group didn't specify a value of required optimization parameter " +
-                                 name)
+                raise ValueError(
+                    "parameter group didn't specify a value of required optimization parameter "
+                    + name)
             else:
                 param_group.setdefault(name, default)
 
@@ -220,6 +232,7 @@ class Optimizer(object):
             param_set.update(set(group['params']))
 
         if not param_set.isdisjoint(set(param_group['params'])):
-            raise ValueError("some parameters appear in more than one parameter group")
+            raise ValueError(
+                "some parameters appear in more than one parameter group")
 
         self.param_groups.append(param_group)
