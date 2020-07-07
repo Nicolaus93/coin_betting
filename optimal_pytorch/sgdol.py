@@ -29,19 +29,6 @@ class SGDOL(Optimizer):
           regularizer (default: 10)
     - weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
     """
-    DEFAULTS = {
-        "smoothness": 10.0,
-        "alpha": 10.0,
-        "weight_decay": 0.0
-    }
-
-    def grid_search_params():
-        params = dict()
-        smoothness, alpha, weight_decay = SGDOL.DEFAULTS.values()
-        params["smoothness"] = [smoothness * 10**i for i in range(-2, 3)]
-        params["alpha"] = [0.0] + [alpha * 10**i for i in range(-1, 2)]
-        params["weight_decay"] = [0.0, 0.1]
-        return params
 
     def __init__(
         self,
@@ -58,15 +45,17 @@ class SGDOL(Optimizer):
             raise ValueError(
                 "Invalid weight_decay value: {}".format(weight_decay))
 
-        defaults = dict(weight_decay=weight_decay)
+        defaults = dict(
+            smoothness=smoothness,
+            alpha=alpha,
+            weight_decay=weight_decay)
         super(SGDOL, self).__init__(params, defaults)
 
-        self._alpha = alpha
-        self._smoothness = smoothness
+        # self._alpha = alpha
+        # self._smoothness = smoothness
 
         # Indicate whether we have obtained two stochastic gradients.
         self._is_first_grad = True
-
         # Initialization.
         self._sum_inner_prods = alpha
         self._sum_grad_normsq = alpha

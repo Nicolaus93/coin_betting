@@ -30,32 +30,15 @@ class AccSGD(Optimizer):
     Note:
         Reference code: https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/accsgd.py
     """
-    DEFAULTS = {
-        "lr": 1e-3,
-        "kappa": 1000.0,
-        "xi": 10.0,
-        "small_const": 0.7,
-        "weight_decay": 0.0
-    }
-
-    def grid_search_params():
-        params = dict()
-        lr, kappa, xi, small_const, weight_decay = AccSGD.DEFAULTS.values()
-        params["lr"] = [lr * 10**i for i in range(-2, 3)]
-        params["kappa"] = [kappa * 10**i for i in range(-3, 2)]
-        params["xi"] = [xi * 10**i for i in range(-3, 2)]
-        params["small_const"] = [small_const * 10**i for i in range(-4, 1)]
-        params["weight_decay"] = [0] + [10**i for i in range(-2, 1)]
-        return params
 
     def __init__(
         self,
         params: Params,
-        lr: float = DEFAULTS["lr"],
-        kappa: float = DEFAULTS["kappa"],
-        xi: float = DEFAULTS["xi"],
-        small_const: float = DEFAULTS["small_const"],
-        weight_decay: float = DEFAULTS["weight_decay"],
+        lr: float = 1e-3,
+        kappa: float = 1000.0,
+        xi: float = 10.0,
+        small_const: float = 0.7,
+        weight_decay: float = 0.0
     ) -> None:
         if lr <= 0.0:
             raise ValueError('Invalid learning rate: {}'.format(lr))

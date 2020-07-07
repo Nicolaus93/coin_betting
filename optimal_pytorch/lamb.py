@@ -33,15 +33,6 @@ class Lamb(Optimizer):
         >>> optimizer.step()
     __ https://arxiv.org/abs/1904.00962
     """
-    DEFAULT = {
-        "lr": 1e-3,
-        "betas": (0.9, 0.999),
-        "eps": 1e-6,
-        "weight_decay": 0,
-        "clamp_value": 10,
-        "adam": False,
-        "debias": False
-    }
 
     def __init__(
         self,

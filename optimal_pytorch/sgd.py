@@ -56,23 +56,6 @@ class SGD(Optimizer):
 
         The Nesterov version is analogously modified.
     """
-    DEFAULTS = {
-        "lr": 1e-3,
-        "momentum": 0.0,
-        "dampening": 0.0,
-        "weight_decay": 0.0,
-        "nesterov": False
-    }
-
-    def grid_search_params():
-        params = dict()
-        lr, momentum, dampening, weight_decay, nesterov = SGD.DEFAULTS.values()
-        params["lr"] = [lr * 10**i for i in range(-2, 3)]
-        params["momentum"] = [0.0] + [10**i for i in range(-1, 2)]
-        params["dampening"] = [0.0, 0.01, 0.1, 1]
-        params["weight_decay"] = [0.0, 0.1]
-        params["nesterov"] = [False, True]
-        return params
 
     def __init__(
         self,

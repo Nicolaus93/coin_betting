@@ -26,13 +26,6 @@ class SGDW(Optimizer):
         >>> optimizer.step()
     __ https://arxiv.org/abs/1711.05101
     """
-    DEFAULT = {
-        "lr": 1e-3,
-        "momentum": 0.0,
-        "dampening": 0.0,
-        "weight_decay": 0.0,
-        "nesterov": False
-    }
 
     def __init__(
         self,

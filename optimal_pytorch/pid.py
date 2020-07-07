@@ -25,13 +25,6 @@ class PID(Optimizer):
         >>> optimizer.step()
     __ http://www4.comp.polyu.edu.hk/~cslzhang/paper/CVPR18_PID.pdf
     """
-    DEFAULT = {
-        "lr": 1e-3,
-        "momentum": 0.0,
-        "weight_decay": 0.0,
-        "integral": 5.0,
-        "derivative": 10.0
-    }
 
     def __init__(
         self,

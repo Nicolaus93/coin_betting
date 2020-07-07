@@ -12,6 +12,7 @@ class GenericLoss(ABC):
     Each loss function should have 2 methods:
      - get_minima:  returns the minimum value of that function
      - forward:     returns a loss value based on the input they receive.
+    Name should end with "Loss".
     """
 
     @abstractmethod
