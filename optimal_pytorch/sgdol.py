@@ -120,7 +120,12 @@ class SGDOL(Optimizer):
             # Compute the step-size of the next round.
             lr = self._lr
             smoothness = self._smoothness
+<<<<<<< HEAD
+            lr_next = self._sum_inner_prods / (smoothness *
+                                               self._sum_grad_normsq)
+=======
             lr_next = self._sum_inner_prods / (smoothness * self._sum_grad_normsq)
+>>>>>>> master
             lr_next = max(min(lr_next, 2.0 / smoothness), 0.0)
             self._lr = lr_next
 
