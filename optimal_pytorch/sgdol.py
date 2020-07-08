@@ -29,7 +29,14 @@ class SGDOL(Optimizer):
           regularizer (default: 10)
     - weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
     """
-    def __init__(self, params, smoothness=10.0, alpha=10.0, weight_decay=0):
+
+    def __init__(
+        self,
+        params: Params,
+        smoothness: float = 10.0,
+        alpha: float = 10.0,
+        weight_decay: float = 0
+    ) -> None:
         if smoothness < 0.0:
             raise ValueError("Invalid smoothness value: {}".format(smoothness))
         if alpha < 0.0:
@@ -38,7 +45,10 @@ class SGDOL(Optimizer):
             raise ValueError(
                 "Invalid weight_decay value: {}".format(weight_decay))
 
-        defaults = dict(weight_decay=weight_decay)
+        defaults = dict(
+            smoothness=smoothness,
+            alpha=alpha,
+            weight_decay=weight_decay)
         super(SGDOL, self).__init__(params, defaults)
 
         self._alpha = alpha
@@ -46,7 +56,6 @@ class SGDOL(Optimizer):
 
         # Indicate whether we have obtained two stochastic gradients.
         self._is_first_grad = True
-
         # Initialization.
         self._sum_inner_prods = alpha
         self._sum_grad_normsq = alpha

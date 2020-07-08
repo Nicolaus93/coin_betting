@@ -28,7 +28,7 @@ class AccSGD(Optimizer):
      __ https://arxiv.org/abs/1704.08227
      __ https://arxiv.org/abs/1803.05591
     Note:
-        Reference code: https://github.com/jettify/pytorch-optimizer/blob/master/optimal_pytorch/accsgd.py
+        Reference code: https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/accsgd.py
     """
 
     def __init__(
@@ -38,7 +38,7 @@ class AccSGD(Optimizer):
         kappa: float = 1000.0,
         xi: float = 10.0,
         small_const: float = 0.7,
-        weight_decay: float = 0,
+        weight_decay: float = 0.0
     ) -> None:
         if lr <= 0.0:
             raise ValueError('Invalid learning rate: {}'.format(lr))

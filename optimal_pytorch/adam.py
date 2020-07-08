@@ -35,6 +35,7 @@ class Adam(Optimizer):
     .. _On the Convergence of Adam and Beyond:
         https://openreview.net/forum?id=ryQu7f-RZ
     """
+
     def __init__(
         self,
         params: Params,
