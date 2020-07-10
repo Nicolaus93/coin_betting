@@ -9,7 +9,7 @@ __all__ = ('AdaMod',)
 
 
 class AdaMod(Optimizer):
-    r"""Implements AccSGD algorithm.
+    r"""Implements Adamod algorithm.
     It has been proposed in `Adaptive and Momental Bounds for Adaptive
     Learning Rate Methods`__.
     Arguments:
