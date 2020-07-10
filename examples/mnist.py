@@ -9,7 +9,7 @@ import torch.optim as optim
 from types import ModuleType
 import optimal_pytorch
 import argparse
-from Data import config
+from Data.scripts import config
 # Checking if gpu exists.
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #for reproducibility
