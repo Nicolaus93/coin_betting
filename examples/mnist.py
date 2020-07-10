@@ -6,9 +6,10 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from types import ModuleType
 import optimal_pytorch
 import argparse
-from Data import config
+from Data.scripts import config
 # Checking if gpu exists.
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #for reproducibility
@@ -139,14 +140,16 @@ def main():
     opt = opt.lower()
     try:
         if (getattr(optimal_pytorch, opt)):
-            opt = opt
+            get_opt = getattr(optimal_pytorch, opt)
+            if(type(get_opt)==ModuleType):
+                for ele in dir(get_opt):
+                    if(ele.lower()==opt):
+                        opt = ele
+            else:
+                opt = opt
     except AttributeError:
-        try:
-            if (getattr(optimal_pytorch, opt.capitalize())):
-                opt = opt.capitalize()
-        except AttributeError:
-            if (getattr(optimal_pytorch, opt.upper())):
-                opt = opt.upper()
+        print('there is no opt by this name... chosing default SGD')
+        opt = 'SGD'
     # Initializing our network, loss, optimizer and training/testing data.
     net = Net().to(device)
     loss = nn.CrossEntropyLoss(reduction='sum')

@@ -9,7 +9,7 @@ import argparse
 from itertools import repeat
 from plot_results import plot_results
 from Tests import functions
-from Data import config
+from Data.scripts import config
 # For reproducibility.
 torch.manual_seed(1)
 
@@ -23,13 +23,12 @@ conf = config.Unit_Test_Config()
 
 
 def generate_optimizers(params):
-    """
-    Generates a list of all possible hyperparameter combinations for optimizer as defined in params.
+    """Generates a list of all possible hyperparameter combinations for optimizer as defined in params.
     """
     opt_combinations = {}
     counter = 0
     for key in params:
-        # Create an empty array if that key is empty [will happen in case of first key(here Adam)].
+        # Create an empty array if entry for that optimizer is empty [will happen once per optimizer].
         if key not in opt_combinations:
             opt_combinations[key] = []
         # Traverse throough all keys(hyperparameters of optimizers) of params list.
@@ -60,8 +59,7 @@ def generate_optimizers(params):
 
 
 def generate_functions(functions_list, func_constraints, conf):
-    """
-    Generates random parameter combination for functions to be used in the experiments.
+    """Generates random parameter combination for functions to be used in the experiments.
     functions_list = A list of all the functions
     func_params = a list of all the parameters every function requires(ex: xs, xe, mu)
     func_constraints = Functions which have constraints for the input space(have a specific minimum in that domain).
@@ -107,7 +105,6 @@ Initializes results object with every entry, The results is finally in the forma
  }
 """
 
-
 def add_result_to_json(results, opt_name, opt_params, functions_list,
                        func_params, conf):
     """Function to add populate empty results onject to the format described above.
@@ -120,35 +117,41 @@ def add_result_to_json(results, opt_name, opt_params, functions_list,
     """
     for i in range(len(opt_params)):
         # Check if optimizer is already present in dict object
-        if (not opt_name[i] in results):
+        if (opt_name[i] not in results):
             results[opt_name[i]] = {}
+            results[opt_name[i]]['curr_run'] = -1
         # create an entry for a specific set of hyperparameters for the optimizer
         str1 = ''
         for key in opt_params[i]:
             str1 += (key + '|' + str(opt_params[i][key]) + '|')
-        results[opt_name[i]][str1] = {}
+        if(str1 not in results[opt_name[i]]):
+            results[opt_name[i]][str1] = {}
         # Create an entry for the specific parameters for the function
         for func_name in functions_list:
-            results[opt_name[i]][str1][func_name] = {}
+            if(func_name not in results[opt_name[i]][str1]):
+                results[opt_name[i]][str1][func_name] = {}
             # creating entries for our starting point, optimal solution
             # minima, color and iterations to reach that point
-            temp_json = {}
-            temp_json['x_optimal'] = []
-            temp_json['x_soln'] = []
-            temp_json['x_initial'] = []
-            temp_json['color'] = []
-            temp_json['iterations'] = []
-            if (not bool(func_params[func_name])):
-                results[opt_name[i]][str1][func_name] = temp_json
-            else:
-                for j in range(conf.num_func_variations):
-                    str2 = ''
-                    for param in func_params[func_name]:
-                        temp = func_params[func_name][param][j].data.numpy(
-                        ).reshape(1)
-                        str2 += (param + '|' + str(temp[0]) + '|')
-                    results[opt_name[i]][str1][func_name][str2] = temp_json
 
+            if (not bool(func_params[func_name])):
+                if(results[opt_name[i]]['curr_run']==-1):
+                    results[opt_name[i]][str1][func_name]['x_optimal'] = []
+                    results[opt_name[i]][str1][func_name]['x_soln'] = []
+                    results[opt_name[i]][str1][func_name]['x_initial'] = []
+                    results[opt_name[i]][str1][func_name]['iterations'] = []
+            else:
+                if(results[opt_name[i]]['curr_run']==-1):
+                    for j in range(conf.num_func_variations):
+                        str2 = ''
+                        for param in func_params[func_name]:
+                            temp = func_params[func_name][param][j].data.numpy(
+                            ).reshape(1)
+                            str2 += (param + '|' + str(temp[0]) + '|')
+                        results[opt_name[i]][str1][func_name][str2] = {}
+                        results[opt_name[i]][str1][func_name][str2]['x_optimal'] = []
+                        results[opt_name[i]][str1][func_name][str2]['x_soln'] = []
+                        results[opt_name[i]][str1][func_name][str2]['x_initial'] = []
+                        results[opt_name[i]][str1][func_name][str2]['iterations'] = []
 
 def get_limits(func_constraints, func_combinations, key, j):
     """Helper function which for any function returns the domain of the function [xstart, xend].
@@ -181,8 +184,7 @@ def get_limits(func_constraints, func_combinations, key, j):
 
 def generate_initial(optimizer_name, functions_combinations, conf,
                      func_constraints):
-    """
-    This function generates the initial value for every function-optimizer combination
+    """This function generates the initial value for every function-optimizer combination
     for some num_runs between [xs, xe] for every function.
     """
     init_tensors = []
@@ -205,14 +207,54 @@ def generate_initial(optimizer_name, functions_combinations, conf,
                 for ele in temp:
                     ele.requires_grad_()
                 func_run.append(temp)
+
             init_run.append(func_run)
         init_tensors.append(init_run)
     return init_tensors
 
+def check_saved_results(results, opt_names, opt_config, initial_tensors, curr_run, total_runs):
+    """Function to check if results contains any saved optimizer runs from before and excluding them from running again.
+    results : the json object containing results for all the runs.
+    opt_names : names of all the optimizers included in Data/opt_params.json
+    opt_config : different hyperparameter configurations for optimizers in opt_names
+    initial_tensors: inital values of tensors to be used in each function run.
+    curr_run : what is the current run, where the script is at.
+    total_runs : what are the total number of runs
+    """
+    opt_names_temp, opt_config_temp, initial_tensors_temp = [], [], []
+    
+    initial_curr = initial_tensors[curr_run]
+    for i in range(len(initial_curr)):
+        initial_tensors_temp = [[] for j in range(len(initial_tensors[i]))]
+    # Includes only those optimizers where results[optimizer_name]['curr_run'] < curr_run
+    for key in results:
+        if(results[key]['curr_run']<curr_run):
+            curr = ''
+            start, end = -1, -1
+            for i in range(len(opt_names)):
+                curr = opt_names[i]
+                if(curr==key):
+                    if(start==-1):
+                        start = i
+                    if(opt_names[len(opt_names)-1]==key):
+                        end = len(opt_names) - 1
+                else:
+                    if(start is not -1):
+                        if(end==-1):
+                            end = i -1
+
+            for i in range(start, end+1):
+                opt_names_temp.append(opt_names[i])
+                opt_config_temp.append(opt_config[i])
+                for j in range(len(initial_tensors_temp)):
+                    initial_tensors_temp[j].append(initial_tensors[curr_run][j][i])
+
+    return opt_names_temp, opt_config_temp, initial_tensors_temp
+            
+
 
 def compare_results(optimal, obtained, calc_diff=False):
-    """
-    Function to assign colors based on the difference between values.
+    """Function to assign colors based on the difference between values.
     """
     a = float(optimal)
     b = float(obtained)
@@ -229,14 +271,13 @@ def compare_results(optimal, obtained, calc_diff=False):
 
 
 def run_function(func_name, opt_name, func_params, opt_params, initial,
-                 func_constraints):
-    """
-    runs an optimizer instance on a function for n iterations
-    func_name = which function is used
-    opt_name = which optimizer is used
-    func_params = the parameters of that specific function
-    opt_params = hyper parameters for that specific optimizer
-    initial = the initial value to optimize.
+                 func_constraints, find_suboptimal=False):
+    """runs an optimizer instance on a function for n iterations
+    func_name : which function is used
+    opt_name : which optimizer is used
+    func_params : the parameters of that specific function
+    opt_params : hyper parameters for that specific optimizer
+    initial : the initial value to optimize.
     """
     global conf
     init_arr, minima_arr, final_arr, iteration_arr = [], [], [], []
@@ -262,9 +303,14 @@ def run_function(func_name, opt_name, func_params, opt_params, initial,
             loss.backward()
             optimizer.step()
             counter += 1
-            if (compare_results(x, minima) == 'g'
-                    or compare_results(x, minima) == 'b'):
-                break
+            if(find_suboptimal):
+                if (compare_results(loss_function.forward(x), loss_function.forward(minima)) == 'g'
+                        or compare_results(loss_function.forward(x), loss_function.forward(minima)) == 'b'):
+                    break
+            else:
+                if (compare_results(x, minima) == 'g'
+                        or compare_results(x, minima) == 'b'):
+                    break
         minima_arr.append(str(minima.data.numpy().reshape(1)[0]))
         final_arr.append(str(x.data.numpy().reshape(1)[0]))
         iteration_arr.append(counter)
@@ -273,15 +319,13 @@ def run_function(func_name, opt_name, func_params, opt_params, initial,
 
 def add_soln_to_results(results, func_name, func_params, soln, opt_names,
                         opt_config, func_constraints):
-    """
-    Function which adds solutions generated during the optimization process to a json object.
-    results = The json object which will contains all the results
-    func_name = the name of the function
-    func_params = the parameters of that function,
-        soln contains the final values obtained in the optimization
-        process for an optimizer on a function
-    opt_names = list of all optimizers
-    opt_config = config for every optimizer in opt_names
+    """Function which adds solutions generated during the optimization process to a json object.
+    results : The json object which will contains all the results
+    func_name : the name of the function.
+    func_params : the parameters of that function.
+    soln : contains the final values obtained in the optimization process for an optimizer on a function.
+    opt_names : list of all optimizers.
+    opt_config : config for every optimizer in opt_names.
     """
     global conf
     for i in range(len(opt_names)):
@@ -307,8 +351,6 @@ def add_soln_to_results(results, func_name, func_params, soln, opt_names,
                     str(soln[i][1][j]))
                 results[opt_name][str1][func_name]['x_soln'].append(
                     str(soln[i][2][j]))
-                results[opt_name][str1][func_name]['color'].append(
-                    str(compare_results(soln[i][1][j], soln[i][2][j])))
                 results[opt_name][str1][func_name]['iterations'].append(
                     str(soln[i][3][j]))
             else:
@@ -318,8 +360,6 @@ def add_soln_to_results(results, func_name, func_params, soln, opt_names,
                     str(soln[i][1][j]))
                 results[opt_name][str1][func_name][str2]['x_soln'].append(
                     str(soln[i][2][j]))
-                results[opt_name][str1][func_name][str2]['color'].append(
-                    str(compare_results(soln[i][1][j], soln[i][2][j])))
                 results[opt_name][str1][func_name][str2]['iterations'].append(
                     str(soln[i][3][j]))
 
@@ -350,66 +390,97 @@ def convert_to_list(opt_combinations):
     return opt_names, opt_config
 
 
-def run():
+def run(args):
     global conf, opt_params_path, func_constraints_path, results_path
-    # making a directory to store results and loading env variables
+   
+    # checking for directory to store results and loading config variables
     if not os.path.exists(results_path):
         os.makedirs(results_path, exist_ok=True)
     with open(opt_params_path) as file:
         opt_params = json.load(file)
     with open(func_constraints_path) as file:
         func_constraints = json.load(file)
-
+    
+    # results will store the results for our experiment runs.
     results = {}
+    
     print('generating functions....')
     functions_list = [x for x in dir(functions) if x.find('loss_') >= 0]
     print('generating optimizers....')
     opt_combinations, total_optimizers = generate_optimizers(opt_params)
     opt_names, opt_config = convert_to_list(opt_combinations)
-
+    
+    # Loading results from log files if they exist.
+    for key in list(set(opt_names)):
+        if os.path.exists(results_path+'/logs_'+ key +'.json'):        
+            with open(results_path+'/logs_'+key+'.json') as file:
+                temp = json.load(file)
+                results[key] = temp
+            if(bool(results[key])):
+                print('restoring results from log file for '+key+'....')
+                print('continuing from run {}'.format(results[key]['curr_run']))            
+    # Generates different function parameters (coefficients etc).
     print('generating function constraints...')
     func_parameter_combinations = generate_functions(functions_list,
-                                                     func_constraints, conf)
+                                                    func_constraints, conf)
+    # Adds keys to results object to convert it in the format defined above.
     add_result_to_json(results, opt_names, opt_config, functions_list,
-                       func_parameter_combinations, conf)
+                    func_parameter_combinations, conf)
+
     # generate initial states
     initial_tensors = generate_initial(opt_names, func_parameter_combinations,
-                                       conf, func_constraints)
-    n_workers = multiprocessing.cpu_count()
+                                    conf, func_constraints)
+    n_workers = multiprocessing.cpu_count() - 1 if multiprocessing.cpu_count() > 4 else 2
     with multiprocessing.Pool(processes=n_workers) as pool:
         for i in range(conf.num_runs):
-            print('Running iteration %d ....' % i)
-            # running every combination of optimizers on every function
-            t1 = time.time()
-            for j in range(len(functions_list)):
-                t2 = time.time()
-                print(functions_list[j])
-                soln = pool.starmap(
-                    run_function,
-                    zip(repeat(functions_list[j]), opt_names,
-                        repeat(func_parameter_combinations), opt_config,
-                        initial_tensors[i][j], repeat(func_constraints)))
-                add_soln_to_results(results, functions_list[j],
-                                    func_parameter_combinations, soln,
-                                    opt_names, opt_config, func_constraints)
-                print('Function running time = ', time.time() - t2)
-            print('time taken = ', time.time() - t1)
-    # Writing results to a json object
-    with open(results_path + '/logs' + '.json', 'w+') as file:
-        json.dump(results, file, indent=4)
-
+            print('Running run %d....' % i)
+            # Generates the optimizer names, optimizer config and initial tensors to be used in that run of the program (according to log files).
+            opt_names_temp, opt_config_temp, initial_tensors_temp = check_saved_results(results, opt_names, 
+            opt_config, initial_tensors, i, conf.num_runs)
+            if(len(opt_names_temp)==0):
+                print('all optimizers have run for this iteration. Results can be found in Results/unit_tests, moving on to next iteration...')
+                continue
+            else:
+                t1 = time.time()
+                # running every combination of optimizers on every function
+                for j in range(len(functions_list)):
+                    t2 = time.time()
+                    print('Current Function running optimization on :' + functions_list[j])
+                    # Uses multiprocessing to perform optimization on an initial tensor parallely.
+                    soln = pool.starmap(
+                        run_function,
+                        zip(repeat(functions_list[j]), opt_names_temp,
+                            repeat(func_parameter_combinations), opt_config_temp,
+                            initial_tensors_temp[j], repeat(func_constraints), repeat(args.find_suboptimal)))
+                    # Add the solution of the function runs to the results json object.
+                    add_soln_to_results(results, functions_list[j],
+                                        func_parameter_combinations, soln,
+                                        opt_names_temp, opt_config_temp, func_constraints)
+                    print('Function running time = {} sec'.format(time.time() - t2))
+                print('Time taken for this run = {} sec'.format(time.time() - t1))
+                # Writing results to separate log files.
+                for opti in list(set(opt_names)):
+                    if(results[opti]['curr_run']<i):
+                        results[opti]['curr_run'] = i
+                    with open(results_path + '/logs_'+ opti +'.json', 'w+') as file:
+                        json.dump(results[opti], file, indent=4)
+        plot = args.plot
+        if plot:
+            print('plotting results...')
+            plot_results(results_path, iterations, True)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Plot results of unit tests.')
+    parser = argparse.ArgumentParser(description='This sets the configurations for this program. --plot will plot the results, --suboptimal will find suboptimality gap instead of L1 norm(absolute error)')
     parser.add_argument('--plot',
                         dest='plot',
                         action='store_true',
                         default=False,
                         help="whether to plot results (default=False).")
+    parser.add_argument('--suboptimal',
+                        dest='find_suboptimal',
+                        action='store_true',
+                        default=False,
+                        help="whether to calculate suboptimality gap or L1 norm (default=False).")
 
     args = parser.parse_args()
-    plot = args.plot
-    run()
-    if plot:
-        print('plotting results...')
-        plot_results(results_path, iterations, True)
+    run(args)
