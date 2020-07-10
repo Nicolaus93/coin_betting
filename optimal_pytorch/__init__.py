@@ -40,7 +40,6 @@ __all__ = [
     'AdaBound',
     'AdaMod',
     'Cocob',
-    'COCOBBackprop',
     'DiffGrad',
     'Lamb',
     'Lookahead',
