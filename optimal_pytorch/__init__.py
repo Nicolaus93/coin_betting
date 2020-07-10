@@ -23,6 +23,7 @@ from .pid import PID                # noqa: F401
 from .radam import RAdam            # noqa: F401
 from .sgdw import SGDW              # noqa: F401
 from .yogi import Yogi              # noqa: F401
+from .cocob import Cocob            # noqa: F401
 
 
 # del adam
@@ -38,6 +39,8 @@ __all__ = [
     'AccSGD',
     'AdaBound',
     'AdaMod',
+    'Cocob',
+    'COCOBBackprop',
     'DiffGrad',
     'Lamb',
     'Lookahead',
