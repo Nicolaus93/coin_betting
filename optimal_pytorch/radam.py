@@ -53,6 +53,12 @@ class RAdam(Optimizer):
         self._buffer = [[None, None, None] for ind in range(10)]
         super(RAdam, self).__init__(params, defaults)
 
+    def grid_search_params(self):
+        ranges = {}
+        ranges['lr'] = [1e-5, 1, 'gen', 6]
+        ranges['betas'] = [[0.9, 0.999], [0, 0.999]]
+        return ranges
+
     def step(self, closure: OptLossClosure = None) -> OptFloat:
         r"""Performs a single optimization step.
         Arguments:

@@ -57,6 +57,13 @@ class AdaMod(Optimizer):
             lr=lr, betas=betas, beta3=beta3, eps=eps, weight_decay=weight_decay
         )
         super(AdaMod, self).__init__(params, defaults)
+    
+    def grid_search_params(self):
+        ranges = {}
+        ranges['lr'] = [1e-5, 1, 'gen', 6]
+        ranges['betas'] = [[0.9, 0.999], [0, 0.999]]
+        ranges['beta3'] = [0, 0.9, 0.999, 'use']
+        return ranges
 
     def step(self, closure: OptLossClosure = None) -> OptFloat:
         """Performs a single optimization step.

@@ -89,6 +89,13 @@ class SGD(Optimizer):
         for group in self.param_groups:
             group.setdefault('nesterov', False)
 
+    def grid_search_params(self):
+        ranges = {}
+        ranges['lr'] = [1e-5, 1, 'gen', 6]
+        ranges['momentum'] = [0.1, 0.5, 0.9, 0.999, 'use']
+        ranges['nesterov'] = [True, False, 'use']
+        return ranges
+
     def step(
         self,
         closure: Optional[LossClosure] = None

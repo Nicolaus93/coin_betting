@@ -54,6 +54,14 @@ class AccSGD(Optimizer):
             weight_decay=weight_decay,
         )
         super(AccSGD, self).__init__(params, defaults)
+    
+    def grid_search_params(self):
+        """ Parameters defined on ranges defined in : https://modelzoo.co/model/accsgd
+        """
+        ranges = {}
+        ranges['lr'] = [1e-5, 1, 'gen', 6]
+        ranges['kappa'] = [1e2, 1e6, 'gen', 5]
+        return ranges
 
     def step(
         self,

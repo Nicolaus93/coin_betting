@@ -66,7 +66,13 @@ class Adam(Optimizer):
         super(Adam, self).__setstate__(state)
         for group in self.param_groups:
             group.setdefault('amsgrad', False)
-
+    
+    def grid_search_params(self):
+        ranges = {}
+        ranges['lr'] = [1e-5, 1, 'gen', 6]
+        ranges['betas'] = [[0.9, 0.999], [0, 0.999]]
+        return ranges
+    
     def step(
         self,
         closure: Optional[LossClosure] = None

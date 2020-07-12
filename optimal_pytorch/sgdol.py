@@ -64,6 +64,11 @@ class SGDOL(Optimizer):
     def __setstate__(self, state: State) -> None:
         super(SGDOL, self).__setstate__(state)
 
+    def grid_search_params(self):
+        ranges = {}
+        ranges['smoothness'] = [10, 20, 'use']
+        ranges['momentum'] = [10, 20, 'use']
+        return ranges
     def step(self, closure: Optional[LossClosure] = None) -> Optional[float]:
         """Performs a single optimization step.
 

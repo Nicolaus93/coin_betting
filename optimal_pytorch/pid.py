@@ -53,6 +53,12 @@ class PID(Optimizer):
 
         super(PID, self).__init__(params, defaults)
 
+    def grid_search_params(self):
+        ranges = {}
+        ranges['lr'] = [1e-5, 1, 'gen', 6]
+        ranges['momentum'] = [0.1, 0.5, 0.9, 0.99, 'use']
+        return ranges
+
     def step(self, closure: OptLossClosure = None) -> OptFloat:
         r"""Performs a single optimization step.
         Arguments:

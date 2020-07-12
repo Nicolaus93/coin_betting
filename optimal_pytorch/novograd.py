@@ -66,6 +66,14 @@ class NovoGrad(Optimizer):
 
         super(NovoGrad, self).__init__(params, defaults)
 
+    def grid_search_params(self):
+        ranges = {}
+        ranges['lr'] = [1e-5, 1, 'gen', 6]
+        ranges['betas'] = [[0.95, 0]]
+        ranges['grad_averaging'] = [True, False, 'use']
+        ranges['amsgrad'] = [True, False, 'use']
+        return ranges
+
     def __setstate__(self, state: dict) -> None:
         super(NovoGrad, self).__setstate__(state)
         for group in self.param_groups:
