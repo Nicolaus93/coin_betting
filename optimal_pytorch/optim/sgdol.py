@@ -51,7 +51,6 @@ class SGDOL(Optimizer):
             weight_decay=weight_decay)
         super(SGDOL, self).__init__(params, defaults)
 
-        self._alpha = alpha
         self._smoothness = smoothness
 
         # Indicate whether we have obtained two stochastic gradients.
