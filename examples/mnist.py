@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from types import ModuleType
-import optimal_pytorch
+import optimal_pytorch.optim as optim
 import argparse
 from Data.scripts import config
 # Checking if gpu exists.
@@ -126,7 +126,7 @@ def main():
         description=
         'This is a simple example which runs NN on MNIST dataset, using the optimizer provided. Current Optimizers available are :'
         + str([
-            ele for ele in dir(optimal_pytorch)
+            ele for ele in dir(optim)
             if (ele.find('__') < 0 and ele.find('Optimizer') < 0)
         ]))
     parser.add_argument(
@@ -139,8 +139,8 @@ def main():
         opt = 'SGD'
     opt = opt.lower()
     try:
-        if (getattr(optimal_pytorch, opt)):
-            get_opt = getattr(optimal_pytorch, opt)
+        if (getattr(optim, opt)):
+            get_opt = getattr(optim, opt)
             if(type(get_opt)==ModuleType):
                 for ele in dir(get_opt):
                     if(ele.lower()==opt):
@@ -154,9 +154,9 @@ def main():
     net = Net().to(device)
     loss = nn.CrossEntropyLoss(reduction='sum')
     if (opt == 'SGDOL'):
-        optimizer = getattr(optimal_pytorch, opt)(net.parameters())
+        optimizer = getattr(optim, opt)(net.parameters())
     else:
-        optimizer = getattr(optimal_pytorch, opt)(net.parameters(), lr=0.001)
+        optimizer = getattr(optim, opt)(net.parameters(), lr=0.001)
     conf = config.MNIST_Config()
     train_loader, test_loader = prepare_data(conf, 2)
     for e in range(conf.epochs):

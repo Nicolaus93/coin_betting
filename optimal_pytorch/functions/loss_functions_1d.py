@@ -28,7 +28,7 @@ class AbsoluteLoss(GenericLoss):
     """
     Absolute loss Function in 1d.
     f(x) = a * |x - b| + c.
-    Given a and interval [x1, x2]:
+    Given a and interval [x1, x2]: 
         b = (x1 + x2) / 2
         c = offset - a * | x2 - b |
     so that f(x2) = offset.
@@ -121,10 +121,6 @@ class SinusoidalLoss(GenericLoss):
     """
 
     def __init__(self, opt: Mapping[str, float]) -> None:
-        if opt['xs'] >= opt['xe']:
-            raise ValueError('xs value greater than xe')
-        self.xs = opt['xs']
-        self.xe = opt['xe']
         self.name = "sinusoidal_loss"
 
     def get_minima(self) -> torch_float:
@@ -144,10 +140,6 @@ class SyntheticLoss(GenericLoss):
     """
 
     def __init__(self, opt: Mapping[str, float]) -> None:
-        if opt['xs'] >= opt['xe']:
-            raise ValueError('xs value greater than xe')
-        self.xs = opt['xs']
-        self.xe = opt['xe']
         self.name = "synthetic_loss"
 
     def get_minima(self) -> torch_float:
@@ -173,10 +165,6 @@ class GaussianLoss(GenericLoss):
     """
 
     def __init__(self, opt: Mapping[str, torch_float]) -> None:
-        if opt['xs'] >= opt['xe']:
-            raise ValueError('xs value greater than xe')
-        self.xs = opt['xs']
-        self.xe = opt['xe']
         self.mu = opt['mu'] if ('mu' in opt) else torch.tensor(
             0, dtype=torch.float)  # some default value
         self.sd = opt['sd'] if ('sd' in opt) else torch.tensor(

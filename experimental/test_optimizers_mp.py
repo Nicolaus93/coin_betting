@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-import optimal_pytorch
+import optimal_pytorch.optim as optim
 import json
 import os
 import time
@@ -8,7 +8,7 @@ import multiprocessing
 import argparse
 from itertools import repeat
 from plot_results import plot_results
-from Tests import functions
+import optimal_pytorch.functions as functions
 from Data.scripts import config
 # For reproducibility.
 torch.manual_seed(1)
@@ -69,16 +69,19 @@ def generate_functions(functions_list, func_constraints, conf):
     dic = {}
     for name in functions_list:
         dic[name] = {}
+        # only generate params for functions which have parameters.
         if ('params' in func_constraints[name]):
             for i in range(conf.num_func_variations):
                 for param in func_constraints[name]['params']:
                     if (not param in dic[name]):
                         dic[name][param] = []
+                    # 'scaling' contains limits for generating these function parameters.
                     temp = torch.rand(1, dtype=torch.float) * (
                         func_constraints[name]['scaling'][1] -
                         func_constraints[name]['scaling'][0]
                     ) + func_constraints[name]['scaling'][0]
                     dic[name][param].append(temp)
+                # 'xs' can't have value > 'xe', just swap them then.
                 if ('xs' in dic[name]):
                     if (dic[name]['xs'][i] > dic[name]['xe'][i]):
                         dic[name]['xs'][i], dic[name]['xe'][i] = dic[name][
@@ -130,10 +133,11 @@ def add_result_to_json(results, opt_name, opt_params, functions_list,
         for func_name in functions_list:
             if(func_name not in results[opt_name[i]][str1]):
                 results[opt_name[i]][str1][func_name] = {}
+            
             # creating entries for our starting point, optimal solution
             # minima, color and iterations to reach that point
-
             if (not bool(func_params[func_name])):
+                # Only create entries for those optimizers which dont have any log files calculated already.
                 if(results[opt_name[i]]['curr_run']==-1):
                     results[opt_name[i]][str1][func_name]['x_optimal'] = []
                     results[opt_name[i]][str1][func_name]['x_soln'] = []
@@ -159,26 +163,31 @@ def get_limits(func_constraints, func_combinations, key, j):
     func_combinations : variable containing function configurations for all functions.
     key : name of the function
     j : jth iteration number.
+
+    "limit" is given in the format [[xs, limit, scaler], [xe, limit, scaler]]
+    and it calculates xstart = xs - limit * scaler ; xend = xe + limit * scaler
     """
     start = func_constraints[key]['limit'][0]
     end = func_constraints[key]['limit'][1]
+    # If it is a string it is a parameter of that function, otherwise it's a number.
     if (isinstance(start[0], str)):
         if (isinstance(start[1], str)):
             xs = func_combinations[key][
-                start[0]][j] + start[2] * func_combinations[key][start[1]][j]
+                start[0]][j] - start[2] * func_combinations[key][start[1]][j]
         else:
-            xs = func_combinations[key][start[0]][j] + start[2] * start[1]
+            xs = func_combinations[key][start[0]][j] - start[2] * start[1]
     else:
-        xs = start[0] + start[2] * start[1]
-
+        xs = start[0] - start[2] * start[1]
+    
+    # If it is a string it is a parameter of that function, otherwise it's a number.
     if (isinstance(end[0], str)):
         if (isinstance(end[1], str)):
             xe = func_combinations[key][
-                end[0]][j] - end[2] * func_combinations[key][end[1]][j]
+                end[0]][j] + end[2] * func_combinations[key][end[1]][j]
         else:
-            xe = func_combinations[key][end[0]][j] - end[2] * end[1]
+            xe = func_combinations[key][end[0]][j] + end[2] * end[1]
     else:
-        xe = end[0] - end[2] * end[1]
+        xe = end[0] + end[2] * end[1]
     return xs, xe
 
 
@@ -186,17 +195,24 @@ def generate_initial(optimizer_name, functions_combinations, conf,
                      func_constraints):
     """This function generates the initial value for every function-optimizer combination
     for some num_runs between [xs, xe] for every function.
+    optimizer_name : unique list of all optimizers.
+    function_combinations : contains different coefficient values for all the functions.
+    conf : config object contains configuration vars for the program (num_runs, default nb_iterations etc.)
+    func_constraints : function constraints for generating initial values.
     """
     init_tensors = []
     for i in range(conf.num_runs):
         init_run = []
         for key in functions_combinations:
             func_temp = []
+            # If it contains coefficients , generate different initial values for all these functions, else just one.
             if (bool(functions_combinations[key])):
                 num_variations = conf.num_func_variations
             else:
                 num_variations = 1
+            
             for j in range(num_variations):
+                # xs and xe are scaling parameters for initial tensor generation space.
                 xs, xe = get_limits(func_constraints, functions_combinations,
                                     key, j)
                 combo = torch.rand(1, dtype=torch.float) * (xe - xs) + xs
@@ -214,6 +230,7 @@ def generate_initial(optimizer_name, functions_combinations, conf,
 
 def check_saved_results(results, opt_names, opt_config, initial_tensors, curr_run, total_runs):
     """Function to check if results contains any saved optimizer runs from before and excluding them from running again.
+
     results : the json object containing results for all the runs.
     opt_names : names of all the optimizers included in Data/opt_params.json
     opt_config : different hyperparameter configurations for optimizers in opt_names
@@ -272,7 +289,7 @@ def compare_results(optimal, obtained, calc_diff=False):
 
 def run_function(func_name, opt_name, func_params, opt_params, initial,
                  func_constraints, find_suboptimal=False):
-    """runs an optimizer instance on a function for n iterations
+    """Runs an optimizer instance on a function for n iterations.
     func_name : which function is used
     opt_name : which optimizer is used
     func_params : the parameters of that specific function
@@ -290,12 +307,12 @@ def run_function(func_name, opt_name, func_params, opt_params, initial,
         if ('params' in func_constraints[func_name]):
             for param in func_constraints[func_name]['params']:
                 temp[param] = func_params[func_name][param][i]
-        loss_function = getattr(functions, func_name)(temp)
+        loss_function = getattr(functions.loss_functions_1d, func_name)(temp)
         minima = loss_function.get_minima()
         x = initial[i]
         init_arr.append(str(x.clone().data.numpy()[0]))
         # Runs loss_function on optimizer for some iterations
-        optimizer = getattr(optimal_pytorch, opt_name)([x], **opt_params)
+        optimizer = getattr(optim, opt_name)([x], **opt_params)
         counter = 0
         for _ in range(int(func_constraints[func_name]['max_iterations'])):
             optimizer.zero_grad()
@@ -405,7 +422,8 @@ def run(args):
     results = {}
     
     print('generating functions....')
-    functions_list = [x for x in dir(functions) if x.find('loss_') >= 0]
+    functions_list = [ele for ele in functions.__all__ if ele.find('Generic')<0]
+    print(functions_list)
     print('generating optimizers....')
     opt_combinations, total_optimizers = generate_optimizers(opt_params)
     opt_names, opt_config = convert_to_list(opt_combinations)

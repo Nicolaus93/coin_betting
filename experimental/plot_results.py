@@ -6,7 +6,7 @@ import sys
 import argparse
 from typing import Sequence, Mapping
 from collections import Counter
-from Tests import functions
+import optimal_pytorch.functions as functions
 import glob
 from Data.scripts import config
 import torch
@@ -104,7 +104,7 @@ def generate_colors(results: dict, func_name: str, conf: dict, metric: str, func
         func_variation_arr = func_variation.split('|')[:-1]
         for i in range(len(func_variation_arr)//2):
             obj[func_variation_arr[2*i]] = float(func_variation_arr[2*i + 1])
-        func = getattr(functions, func_name)(obj)
+        func = getattr(functions.loss_functions_1d, func_name)(obj)
         # Now we just run function for different runs of our experiment
         for i in range(conf.num_runs):
             x_sol = results[func_name][func_variation]['x_soln'][i]
@@ -116,7 +116,7 @@ def generate_colors(results: dict, func_name: str, conf: dict, metric: str, func
     else:
         results[func_name]['color'] = []
         obj = {}
-        func = getattr(functions, func_name)(obj)
+        func = getattr(functions.loss_functions_1d, func_name)(obj)
         # Now we just run function for different runs of our experiment
         for i in range(conf.num_runs):
             x_sol = results[func_name]['x_soln'][i]
@@ -152,37 +152,37 @@ def plot_results(metric: str, save: bool = False) -> None:
         for config in results[opt]:
             if(config != 'curr_run'):
                 compiled[opt][config] = {}
-                for functions in results[opt][config]:
+                for func_name in results[opt][config]:
                     # Since log files will have different function variants (coeficients), we calculate top color for every variant.
-                    if('params' in func_constraints[functions]):
-                        compiled[opt][config][functions] = {}
-                        for func_variation in results[opt][config][functions]:
+                    if('params' in func_constraints[func_name]):
+                        compiled[opt][config][func_name] = {}
+                        for func_variation in results[opt][config][func_name]:
                             # Calculate colors based on the metric provided.
-                            generate_colors(results[opt][config], functions, conf, metric,func_variation)
+                            generate_colors(results[opt][config], func_name, conf, metric,func_variation)
                             # Selects top 2 frequent colors
                             counter = most_frequent(
-                                results[opt][config][functions][func_variation]['color']).most_common(2)
+                                results[opt][config][func_name][func_variation]['color']).most_common(2)
                             # For cases where 2 colors have the same frequency
                             if (len(counter) > 1):
-                                compiled[opt][config][functions][func_variation] = mix_color(counter)
+                                compiled[opt][config][func_name][func_variation] = mix_color(counter)
                             else:
-                                compiled[opt][config][functions][func_variation] = counter[0][0]
+                                compiled[opt][config][func_name][func_variation] = counter[0][0]
                         # This choses the most common occuring color among all the different function variant.
                         temp = []
-                        for func_variation in results[opt][config][functions]:
-                            temp.append(compiled[opt][config][functions][func_variation])
+                        for func_variation in results[opt][config][func_name]:
+                            temp.append(compiled[opt][config][func_name][func_variation])
                         # Choses the majority color.
                         counter2 = most_frequent(temp).most_common(1)
-                        compiled[opt][config][functions] = counter2[0][0]
+                        compiled[opt][config][func_name] = counter2[0][0]
                     else:
                         # For functions which don't have any variants.
-                        generate_colors(results[opt][config], functions, conf, metric)
+                        generate_colors(results[opt][config], func_name, conf, metric)
                         counter = most_frequent(
-                            results[opt][config][functions]['color']).most_common(2)
+                            results[opt][config][func_name]['color']).most_common(2)
                         if (len(counter) > 1):
-                            compiled[opt][config][functions] = mix_color(counter)
+                            compiled[opt][config][func_name] = mix_color(counter)
                         else:
-                            compiled[opt][config][functions] = counter[0][0]
+                            compiled[opt][config][func_name] = counter[0][0]
 
     """Creates an n X m array where n = number of functions and m = optimizer
     combinations and array values contain the data in the object 'compiled',
@@ -208,12 +208,12 @@ def plot_results(metric: str, save: bool = False) -> None:
                     str1 += (config_temp[i] + '|')
             optimizers_list.append(str1)
             # For every function ex - loss_gaussian, loss_absolute
-            for functions in compiled[opt][config]:
-                pos = functions.find('|')
-                color_val = compiled[opt][config][functions]
+            for function_name in compiled[opt][config]:
+                pos = function_name.find('|')
+                color_val = compiled[opt][config][function_name]
                 # Create only one copy of function name in functions_list
-                if (not functions[:pos] in functions_list):
-                    functions_list.append(functions[:pos])
+                if (not function_name[:pos] in functions_list):
+                    functions_list.append(function_name[:pos])
                 col_temp.append(color_val)
             color_arr.append(col_temp)
         
@@ -293,7 +293,7 @@ def interpret_results(metric: str)-> None:
                             for i in range(len(temp)//2):
                                 obj[temp[2*i]] = float(temp[2*i + 1])
 
-                            loss_function = getattr(functions, func_name)(obj)
+                            loss_function = getattr(functions.loss_functions_1d, func_name)(obj)
                             for i in range(conf.num_runs):
                                 x_opti = torch.tensor(float(results[opt][config][func_name][func_variation]['x_optimal'][i]))
                                 x_sol = torch.tensor(float(results[opt][config][func_name][func_variation]['x_soln'][i]))
@@ -302,7 +302,7 @@ def interpret_results(metric: str)-> None:
                     else: 
                     # for functions which don't have any coefficients
                         obj = {}
-                        loss_function = getattr(functions, func_name)(obj)
+                        loss_function = getattr(functions.loss_functions_1d, func_name)(obj)
                         for i in range(conf.num_runs):
                             x_opti = torch.tensor(float(results[opt][config][func_name]['x_optimal'][i]))
                             x_sol = torch.tensor(float(results[opt][config][func_name]['x_soln'][i]))
