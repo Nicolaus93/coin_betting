@@ -256,7 +256,7 @@ def check_saved_results(results, opt_names, opt_config, initial_tensors, curr_ru
                     if(opt_names[len(opt_names)-1]==key):
                         end = len(opt_names) - 1
                 else:
-                    if(start is not -1):
+                    if(start != -1):
                         if(end==-1):
                             end = i -1
 
@@ -451,7 +451,7 @@ def run(args):
     n_workers = multiprocessing.cpu_count() - 1 if multiprocessing.cpu_count() > 4 else 2
     with multiprocessing.Pool(processes=n_workers) as pool:
         for i in range(conf.num_runs):
-            print('Running run %d....' % i)
+            print('Running run %d of %d....' % (i, conf.num_runs))
             # Generates the optimizer names, optimizer config and initial tensors to be used in that run of the program (according to log files).
             opt_names_temp, opt_config_temp, initial_tensors_temp = check_saved_results(results, opt_names, 
             opt_config, initial_tensors, i, conf.num_runs)
@@ -485,7 +485,7 @@ def run(args):
         plot = args.plot
         if plot:
             print('plotting results...')
-            plot_results(results_path, iterations, True)
+            plot_results(results_path, conf.num_iterations, True)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This sets the configurations for this program. --plot will plot the results, --suboptimal will find suboptimality gap instead of L1 norm(absolute error)')

@@ -127,7 +127,7 @@ def generate_colors(results: dict, func_name: str, conf: dict, metric: str, func
                 results[func_name]['color'].append(compare_results(x_sol, x_opti, func))
 
 
-def plot_results(metric: str, save: bool = False) -> None:
+def plot_results(metric: str, iterations: int, save: bool = False) -> None:
     """
     Function to Plots results which were saved in results/opt_results.json file
     """

@@ -21,9 +21,10 @@ setup(
         'argparse',
         'yapf',
         'torch>=1.0',
-        'torchvision>=0.2.2'
+        'torchvision>=0.2.2',
         'matplotlib>=1.5.2',
-        'line_profiler'
+        'line_profiler',
+        'birdseye',
     ],
     classifiers=[
         'Development Status :: 2 - Pre-alpha',

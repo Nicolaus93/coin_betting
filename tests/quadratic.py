@@ -4,7 +4,7 @@ if __name__ == "__main__":
     from tqdm import tqdm
     import matplotlib.pyplot as plt
 
-    from optimal_pytorch import Adam, SGD, SGDOL
+    from optimal_pytorch.optim import Adam, SGD, SGDOL
 
     def load_args():
         parser = argparse.ArgumentParser(
