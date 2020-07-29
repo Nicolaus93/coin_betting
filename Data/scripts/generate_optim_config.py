@@ -1,5 +1,5 @@
 import torch
-import optimal_pytorch
+import optimal_pytorch.optim as optimal_pytorch
 import json
 
 # Gives a list of all optimizers in library.

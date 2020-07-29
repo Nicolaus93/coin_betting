@@ -58,9 +58,7 @@ class SGDW(Optimizer):
 
     def grid_search_params(self):
         ranges = {}
-        ranges['lr'] = [1e-5, 1, 'gen', 6]
-        ranges['momentum'] = [0.1, 0.5, 0.9, 0.99, 'use']
-        ranges['nesterov'] = [True, False, 'use']
+        ranges['weight_decay'] = [1e-3, 1e3, 'gen', 7]
         return ranges
 
     def __setstate__(self, state: State) -> None:

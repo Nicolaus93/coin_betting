@@ -141,9 +141,9 @@ def main():
     try:
         if (getattr(optim, opt)):
             get_opt = getattr(optim, opt)
-            if(type(get_opt)==ModuleType):
+            if (type(get_opt) == ModuleType):
                 for ele in dir(get_opt):
-                    if(ele.lower()==opt):
+                    if (ele.lower() == opt):
                         opt = ele
             else:
                 opt = opt

@@ -15,6 +15,10 @@ from optimal_pytorch.optim import Adam, SGD, SGDOL
 
 To use the functions we have designed as the unit tests, you can access them by running : 
 ```
+from optimal_pytorch.functions import AbsoluteLoss, GaussianLoss
+
+or
+
 from optimal_pytorch.functions.loss_functions_1d import AbsoluteLoss, GaussianLoss
 ```
 
@@ -34,6 +38,9 @@ Another example implements a simple neural network on MNIST dataset in examples/
 
 ```
 python mnist.py --optimizer optimizer_name
+
+or
+
 python mnist.py --opt optimizer_name
 ```
 ### Running Unit tests
@@ -41,20 +48,23 @@ python mnist.py --opt optimizer_name
 We have implemented a bunch of simple functions on which these optimizers are run on for a while. The file test_optimizers_mp.py is present in Experimental folder, it can be run by :
 ```
 python test_optimizers_mp.py --plot
+python ./experimental/test_optimizers_mp.py --plot (from the main directory)
+
+or
+
+python test_optimizers_mp.py --plot
+python ./experimental/test_optimizers_mp.py --suboptimal (to calculate suboptimality gap instead of l1 norm)
 ```
 
-to plot the results and by running : 
-```
-python test_optimizers_mp.py --suboptimal
-```
-to check for suboptimality gap (default L1 norm).
-
-
-In addition, currently, there is a script plot_results.py which will look for the result files and compile them by:
+There is a script plot_results.py which will look for the result files and compile them. It can be referenced by:
 ```
 python plot_results.py --plot --metric suboptimal/l1
+python ./experimental/plot_results.py --plot --metric suboptimal/l1
+
+or
 
 python plot_results.py --interpret --metric suboptimal/l1
+python ./experimental/plot_results.py --interpret --metric suboptimal/l1
 ```
 to plot the results or interpret them.
 
