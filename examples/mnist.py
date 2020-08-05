@@ -1,15 +1,14 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
 from types import ModuleType
 import optimal_pytorch.optim as optim
 import argparse
 from Data.scripts import config
+import os
 # Checking if gpu exists.
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #for reproducibility
@@ -45,7 +44,13 @@ class Net(nn.Module):
         return x
 
 
-def prepare_data(config, n_workers):
+def prepare_data(config, n_workers, data_location=None):
+    if (os.path.exists('../Data')):
+        root_path = '../Data'
+    elif (os.path.exists('./Data')):
+        root_path = './Data'
+    if (data_location is not None):
+        root_path = data_location
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307, ), (0.3081, ))
@@ -53,7 +58,7 @@ def prepare_data(config, n_workers):
 
     # Preparing training set in the data folder.
     trainset = torchvision.datasets.MNIST(
-        root='../Data',
+        root=root_path,
         train=True,
         download=True,
         transform=transform,
@@ -64,7 +69,7 @@ def prepare_data(config, n_workers):
                                               num_workers=n_workers)
 
     # Preparing test set in the data folder.
-    testset = torchvision.datasets.MNIST(root='../Data',
+    testset = torchvision.datasets.MNIST(root=root_path,
                                          train=False,
                                          download=True,
                                          transform=transform)

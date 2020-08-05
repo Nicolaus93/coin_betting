@@ -1,7 +1,6 @@
 import torch
 from torch.optim.optimizer import Optimizer
 from .types import OptFloat, OptLossClosure, Params
-from birdseye import eye
 
 __all__ = ('Cocob',)
 
@@ -36,6 +35,12 @@ class Cocob(Optimizer):
         self._eps = eps
 
         super(Cocob, self).__init__(params, defaults)
+    
+    def grid_search_params(self):
+        ranges = {}
+        ranges['alpha'] = [100, 'use']
+        ranges['weight_decay'] = [1e-3, 10, 'gen', 6]
+        return ranges
 
     def step(self, closure: OptLossClosure = None) -> OptFloat:
         r"""Performs a single optimization step.

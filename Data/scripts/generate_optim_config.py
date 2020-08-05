@@ -19,7 +19,7 @@ for ele in all_optimizers:
                     optim_params[ele][key] = grid_params[key][:-1]
                 elif('gen' in grid_params[key]):
                     # If we have gen keyword, we find the values based on lower and upper limit. 
-                    # (currently, they are incremented in powers of 10)
+                    # (currently, they are incremented in powers of 10).
                     optim_params[ele][key] = []
                     lower = grid_params[key][0]
                     upper = grid_params[key][1]
@@ -33,6 +33,3 @@ for ele in all_optimizers:
                     optim_params[ele][key] = grid_params[key]
 with open('../optim_params.json', 'w+') as file:
     json.dump(optim_params, file, indent=4)
-                        
-
-

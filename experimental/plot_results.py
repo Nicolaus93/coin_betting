@@ -114,7 +114,7 @@ def generate_colors(results: dict,
             obj[func_variation_arr[2 * i]] = float(func_variation_arr[2 * i +
                                                                       1])
         pos = func_name.find('_noisy')
-        if(pos>0):
+        if (pos > 0):
             func_name_temp = func_name[:pos]
         else:
             func_name_temp = func_name
@@ -133,7 +133,7 @@ def generate_colors(results: dict,
         results[func_name]['color'] = []
         obj = {}
         pos = func_name.find('_noisy')
-        if(pos>0):
+        if (pos > 0):
             func_name_temp = func_name[:pos]
         else:
             func_name_temp = func_name
@@ -155,11 +155,11 @@ def plot_results(metric: str, iterations: int, save: bool = False) -> None:
     Function to Plots results which were saved in results/opt_results.json file
     """
     global conf
-    if(os.path.exists('../Data/func_constraints.json')):
+    if (os.path.exists('../Data/func_constraints.json')):
         with open('../Data/func_constraints.json') as file:
             func_constraints = json.load(file)
         results_path = '../Results/unit_tests'
-    elif(os.path.exists('./Data/func_constraints.json')):
+    elif (os.path.exists('./Data/func_constraints.json')):
         with open('./Data/func_constraints.json') as file:
             func_constraints = json.load(file)
         results_path = './Results/unit_tests'
@@ -182,7 +182,7 @@ def plot_results(metric: str, iterations: int, save: bool = False) -> None:
                 compiled[opt][config] = {}
                 for func_name in results[opt][config]:
                     pos = func_name.find('_noisy')
-                    if(pos>0):
+                    if (pos > 0):
                         func_name_temp = func_name[:pos]
                     else:
                         func_name_temp = func_name
@@ -282,12 +282,10 @@ def plot_results(metric: str, iterations: int, save: bool = False) -> None:
         ax.set_title(opt + ' Results')
         fig.tight_layout()
         if save:
-            if (not os.path.exists(results_path + '/plots_' +
-                                   str(iterations))):
-                os.makedirs(results_path + '/plots_' + str(iterations),
-                            exist_ok=True)
-            plt.savefig(results_path + '/plots_' + str(iterations) + '/' +
-                        opt + ".png",
+            if (not os.path.exists(results_path + '/plots')):
+                os.makedirs(results_path + '/plots', exist_ok=True)
+            plt.show()
+            plt.savefig(results_path + '/plots/' + opt + ".png",
                         bbox_inches='tight')
         else:
             plt.show()
@@ -295,11 +293,11 @@ def plot_results(metric: str, iterations: int, save: bool = False) -> None:
 
 def interpret_results(metric: str) -> None:
     global conf
-    if(os.path.exists('../Data/func_constraints.json')):
+    if (os.path.exists('../Data/func_constraints.json')):
         with open('../Data/func_constraints.json') as file:
             func_constraints = json.load(file)
         results_path = '../Results/unit_tests'
-    elif(os.path.exists('./Data/func_constraints.json')):
+    elif (os.path.exists('./Data/func_constraints.json')):
         with open('./Data/func_constraints.json') as file:
             func_constraints = json.load(file)
         results_path = './Results/unit_tests'
@@ -327,11 +325,11 @@ def interpret_results(metric: str) -> None:
                     compiled[opt][config][func_name] = []
                     # Functions which have params have different combinations of these params.
                     pos = func_name.find('_noisy')
-                    if(pos>0):
+                    if (pos > 0):
                         func_name_temp = func_name[:pos]
                     else:
                         func_name_temp = func_name
-                        
+
                     if ('params' in func_constraints[func_name_temp]):
                         for func_variation in results[opt][config][func_name]:
                             temp = func_variation.split('|')[:-1]
@@ -341,7 +339,8 @@ def interpret_results(metric: str) -> None:
                                 obj[temp[2 * i]] = float(temp[2 * i + 1])
 
                             loss_function = getattr(
-                                functions.loss_functions_1d, func_name_temp)(obj)
+                                functions.loss_functions_1d,
+                                func_name_temp)(obj)
                             for i in range(conf.num_runs):
                                 x_opti = torch.tensor(
                                     float(results[opt][config][func_name]
@@ -375,10 +374,10 @@ def interpret_results(metric: str) -> None:
     for opt in compiled:
         final[opt] = {}
         for ele in dir(functions):
-            if (ele.find('Loss') >= 0 and ele!='GenericLoss'):
+            if (ele.find('Loss') >= 0 and ele != 'GenericLoss'):
                 final[opt][ele] = {}
-                if(func_constraints[ele]['noisy']):
-                    final[opt][ele+'_noisy'] = {}
+                if (func_constraints[ele]['noisy']):
+                    final[opt][ele + '_noisy'] = {}
     # Finding the lowest metric(suboptimality gap, L1 norm) for SGD (baseline).
     for opt_config in compiled['SGD']:
         for func_name in compiled['SGD'][opt_config]:
@@ -445,5 +444,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if (args.plot):
         plot_results(args.metric, args.save)
-    elif (args.interpret):
+    else:
         interpret_results(args.metric)

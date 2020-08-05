@@ -18,7 +18,9 @@ torch.manual_seed(1)
 
 # file paths containing different parameters for optimizers (lr, momentum etc) and function constraints(xs and xe).
 opt_params_path = ['../Data/opt_params.json', './Data/opt_params.json']
-func_constraints_path = ['../Data/func_constraints.json', './Data/func_constraints.json']
+func_constraints_path = [
+    '../Data/func_constraints.json', './Data/func_constraints.json'
+]
 results_path = ['../Results/unit_tests', './Results/unit_tests']
 
 # Loading configuration variables(num_runs, n_iterations etc).
@@ -258,7 +260,7 @@ def generate_initial(optimizer_name: List[str],
                 combo = torch.rand(1, dtype=torch.float) * (xe - xs) + xs
                 func_temp.append(combo)
             func_run = []
-            if(func_constraints[key]['noisy']):
+            if (func_constraints[key]['noisy']):
                 func_run_temp = []
                 func_run_temp2 = []
                 for _ in range(len(optimizer_name)):
@@ -319,9 +321,9 @@ def check_saved_results(results: Mapping[str, dict], opt_names: List,
                     if (opt_names[len(opt_names) - 1] == key):
                         end = len(opt_names) - 1
                 else:
-                    if(start != -1):
-                        if(end==-1):
-                            end = i -1
+                    if (start != -1):
+                        if (end == -1):
+                            end = i - 1
 
             for i in range(start, end + 1):
                 opt_names_temp.append(opt_names[i])
@@ -397,11 +399,7 @@ def run_function(
                 lambda grad: grad + torch.rand(1)[0] * args.noise_sd)
         init_arr.append(str(x.clone().data.numpy()[0]))
         # Runs loss_function on optimizer for some iterations
-        try:
-            optimizer = getattr(optim, opt_name)([x], **opt_params)
-        except:
-            print('hereee', opt_name, opt_params)
-            sys.exit(0)
+        optimizer = getattr(optim, opt_name)([x], **opt_params)
         counter = 0
         for _ in range(int(func_constraints[func_name]['max_iterations'])):
             optimizer.zero_grad()
@@ -558,16 +556,16 @@ def run_multiprocessing_step(pool,
 
 def run(args: Mapping[str, any]) -> None:
     global conf, opt_params_path, func_constraints_path, results_path
-    path =-1
+    path = -1
     # checking for directory to store results and loading config variables
-    if(os.path.exists(opt_params_path[0])):
+    if (os.path.exists(opt_params_path[0])):
         with open(opt_params_path[0]) as file:
             opt_params = json.load(file)
         if not os.path.exists(results_path[0]):
             os.makedirs(results_path[0], exist_ok=True)
         path = 0
 
-    elif(os.path.exists(opt_params_path[1])):
+    elif (os.path.exists(opt_params_path[1])):
         with open(opt_params_path[1]) as file:
             opt_params = json.load(file)
         if not os.path.exists(results_path[1]):
@@ -576,7 +574,6 @@ def run(args: Mapping[str, any]) -> None:
 
     with open(func_constraints_path[path]) as file:
         func_constraints = json.load(file)
-
 
     # results will store the results for our experiment runs.
     results = {}
@@ -669,7 +666,7 @@ def run(args: Mapping[str, any]) -> None:
             plot_results(results_path, iterations, True)
         else:
             print('interpretting results...')
-            if(args.find_suboptimal):
+            if (args.find_suboptimal):
                 interpret_results('suboptimal')
             else:
                 interpret_results('l1')

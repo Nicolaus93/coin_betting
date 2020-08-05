@@ -23,8 +23,7 @@ setup(
         'torch>=1.0',
         'torchvision>=0.2.2',
         'matplotlib>=1.5.2',
-        'line_profiler',
-        'birdseye',
+        'line_profiler'
     ],
     classifiers=[
         'Development Status :: 2 - Pre-alpha',
