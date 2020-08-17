@@ -105,7 +105,7 @@ class AdaMod(Optimizer):
                 state['step'] += 1
 
                 # Decay the first and second moment running average coefficient
-                exp_avg.mul_(beta1).add_(1 - beta1, grad)
+                exp_avg.mul_(beta1).add_(grad, alpha = 1 - beta1)
                 exp_avg_sq.mul_(beta2).addcmul_(1 - beta2, grad, grad)
 
                 denom = exp_avg_sq.sqrt().add_(group['eps'])
@@ -119,13 +119,13 @@ class AdaMod(Optimizer):
                 )
 
                 if group['weight_decay'] != 0:
-                    p.data.add_(-group['weight_decay'] * group['lr'], p.data)
+                    p.data.add_(p.data, alpha = -group['weight_decay'] * group['lr'])
 
                 # Applies momental bounds on actual learning rates
                 step_size = torch.full_like(denom, step_size)
                 step_size.div_(denom)
                 exp_avg_lr.mul_(group['beta3']).add_(
-                    1 - group['beta3'], step_size
+                    step_size, alpha = 1 - group['beta3']
                 )
                 step_size = torch.min(step_size, exp_avg_lr)
                 step_size.mul_(exp_avg)

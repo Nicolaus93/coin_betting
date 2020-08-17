@@ -88,18 +88,18 @@ class AccSGD(Optimizer):
                     continue
                 d_p = p.grad.data
                 if weight_decay != 0:
-                    d_p.add_(weight_decay, p.data)
+                    d_p.add_(p.data, alpha = weight_decay)
                 param_state = self.state[p]
                 if 'momentum_buffer' not in param_state:
                     param_state['momentum_buffer'] = copy.deepcopy(p.data)
                 buf = param_state['momentum_buffer']
                 buf.mul_((1.0 / beta) - 1.0)
-                buf.add_(-large_lr, d_p)
+                buf.add_(d_p, alpha = -large_lr)
                 buf.add_(p.data)
                 buf.mul_(beta)
 
-                p.data.add_(-group['lr'], d_p)
+                p.data.add_(d_p, alpha = -group['lr'])
                 p.data.mul_(zeta)
-                p.data.add_(1.0 - zeta, buf)
+                p.data.add_(buf, alpha = 1.0 - zeta)
 
         return loss

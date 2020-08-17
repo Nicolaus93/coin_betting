@@ -90,7 +90,7 @@ class Cocob(Optimizer):
                 )
 
                 if group['weight_decay'] != 0:
-                    grad.add_(group['weight_decay'], p.data)
+                    grad.add_(p.data, alpha = group['weight_decay'])
 
                 # absolute value of current gradient vector
                 abs_grad = torch.abs(grad)
