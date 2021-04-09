@@ -35,7 +35,7 @@ class Cocob(Optimizer):
         self._eps = eps
 
         super(Cocob, self).__init__(params, defaults)
-    
+
     def grid_search_params(self):
         ranges = {}
         ranges['alpha'] = [100, 'use']
@@ -90,7 +90,7 @@ class Cocob(Optimizer):
                 )
 
                 if group['weight_decay'] != 0:
-                    grad.add_(p.data, alpha = group['weight_decay'])
+                    grad.add_(p.data, alpha=group['weight_decay'])
 
                 # absolute value of current gradient vector
                 abs_grad = torch.abs(grad)
