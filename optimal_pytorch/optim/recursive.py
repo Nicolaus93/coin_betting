@@ -148,7 +148,7 @@ class Recursive(Optimizer):
 
                 # pass gradients to inner and update state
                 wealth.add_(grad.view(-1) @ p.view(-1), alpha=-1)
-                if repr(inner).split()[0] == 'Scinol':
+                if inner.__class__.__name__ == 'Scinol2':
                     inner.update(grad)
                 inner.zero_grad()
                 with torch.no_grad():
