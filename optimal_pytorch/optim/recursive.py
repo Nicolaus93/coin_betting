@@ -21,8 +21,9 @@ class ONSBet(Optimizer):
     Args:
         eps (float): Initial wealth of the algorithm.
 
-    TODO: should we remove vt from state? It can be (re)computed in every step.
+    TODO: - Should we remove vt from state? It can be (re)computed in every step.
           This would save memory, but require more computations.
+          - Add momentum.
     """
 
     def __init__(self, params: _params_t, eps: float = 1.):
@@ -90,14 +91,13 @@ class Recursive(Optimizer):
 
     Args:
         params (iterable): iterable of parameters to optimize or dicts defining
-                            parameter groups.
-        eps (float):       Regret at 0 of outer optimizer (initial wealth).
-        eps_v (float):     Regret at 0 of each coordinate of inner optimizer
-                            (per-coordinate initial wealth).
-        inner (Callable):  Inner optimizer. ONSBet corresponds to using coin-betting
-                            reduction with ONS as base optimizer. Scinol corresponds
-                            to scale-invariant online learning algorithm
-                            (https://arxiv.org/pdf/1902.07528.pdf). (TODO)
+            parameter groups.
+        eps (float): Regret at 0 of outer optimizer (initial wealth).
+        eps_v (float): Regret at 0 of each coordinate of inner optimizer
+            (per-coordinate initial wealth).
+        inner (Callable): Inner optimizer. ONSBet corresponds to using coin-betting
+            reduction with ONS as base optimizer. Scinol corresponds to scale-invariant
+            online learning algorithm.
     """
 
     @staticmethod
@@ -149,12 +149,18 @@ class Recursive(Optimizer):
                 torch.max(torch.norm(grad, p=1).detach(), max_grad, out=max_grad)
                 grad = grad / (2 * max_grad)
 
-                # update state
+                # pass gradients to inner and update state
                 wealth.add_(grad.view(-1) @ p.view(-1), alpha=-1)
-                inner.zero_grad()
-                inner_loss = self.betting_loss(grad, vt)
-                inner_loss.backward()
-                inner.step()
+                if inner == Scinol:
+                    inner.step(grad)
+                    inner.zero_grad()
+                    inner_loss = self.betting_loss(grad, vt)
+                    inner_loss.backward()
+                else:
+                    inner.zero_grad()
+                    inner_loss = self.betting_loss(grad, vt)
+                    inner_loss.backward()
+                    inner.step()
                 p.data = wealth * vt
 
         return loss

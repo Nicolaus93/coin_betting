@@ -1,6 +1,5 @@
 import torch
 from torch.optim import Optimizer
-from utils import convex_f
 from typing import TYPE_CHECKING, Any, Optional, Callable
 
 if TYPE_CHECKING:
@@ -21,14 +20,14 @@ class Cocob(Optimizer):
 
     Args:
         params (iterable): iterable of parameters to optimize or dicts defining
-            parameter groups.
-        alpha (float): (hyper)parameter to guarantee that the fraction to bet
-            is at least alpha * L_{t, i} for each weight (default: 100.0).
+                            parameter groups.
+        alpha (float):     (hyper)parameter to guarantee that the fraction to bet
+                            is at least alpha * L_{t, i} for each weight (default: 100.0).
     """
 
     def __init__(self, params: _params_t, alpha: float = 100.0):
-        if not 0.0 <= alpha:
-            raise ValueError("Invalid alpha value: {}".format(alpha))
+        if not 0.0 < alpha:
+            raise ValueError(f"Invalid alpha value: {alpha}")
 
         defaults = dict(alpha=alpha)
         super(Cocob, self).__init__(params, defaults)
@@ -46,7 +45,7 @@ class Cocob(Optimizer):
     def step(self, closure: Optional[Callable[[], float]] = None) -> Optional[float]:
         r"""Performs a single optimization step.
         Arguments:
-            closure: A closure that reevaluates the model and returns the loss.
+            closure (callable, optional): A closure that reevaluates the model and returns the loss.
         """
         loss = None
         if closure is not None:
