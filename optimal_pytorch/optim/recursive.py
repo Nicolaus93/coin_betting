@@ -16,7 +16,7 @@ class ONSBet(Optimizer):
     Implements Diagonal Betting optimizer.
 
     It has been proposed in "Matrix-Free Preconditioning in Online Learning",
-    https://arxiv.org/pdf/1905.12721v1.pdf
+    https://arxiv.org/pdf/1905.12721v1.pdf and https://arxiv.org/pdf/1802.06293.pdf
 
     Args:
         eps (float): Initial wealth of the algorithm.
@@ -62,7 +62,7 @@ class ONSBet(Optimizer):
 
                 # compute gradients
                 grad = p.grad
-                xt = vt * wealth  # retrieve old x_t
+                xt = vt * wealth               # retrieve old x_t
                 grad[grad * (xt - p) < 0] = 0  # \tilde{g}_t
 
                 # update state
@@ -72,6 +72,7 @@ class ONSBet(Optimizer):
                 At.add_(torch.square(zt))
                 vt = torch.clamp(-zt_sum / At, -.5, .5)
                 p.data = torch.clamp(vt * wealth, -.5, .5)
+                # clip the inner betting fraction if At < 1 (see appendix D.4)
                 p.data[At < 1] = torch.clamp(.1 * wealth[At < 1], -.5, .5)
 
                 # store
