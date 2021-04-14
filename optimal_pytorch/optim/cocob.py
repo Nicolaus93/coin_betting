@@ -9,6 +9,9 @@ else:
     _params_t = Any
 
 
+__all__ = ('Cocob',)
+
+
 class Cocob(Optimizer):
     """
     Implements COntinuos COin Betting (COCOB) algorithm.
