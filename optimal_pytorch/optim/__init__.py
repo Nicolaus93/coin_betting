@@ -18,4 +18,5 @@ __all__ = [
     'SGDOL',
     'Cocob',
     'Recursive',
-    'Regralizer']
+    'Regralizer',
+    'Scinol2']

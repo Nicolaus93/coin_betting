@@ -91,36 +91,33 @@ class Recursive(Optimizer):
 
     Args:
         params (iterable): iterable of parameters to optimize or dicts defining
-            parameter groups.
-        eps (float): Regret at 0 of outer optimizer (initial wealth).
-        eps_v (float): Regret at 0 of each coordinate of inner optimizer
-            (per-coordinate initial wealth).
-        inner (Callable): Inner optimizer. ONSBet corresponds to using coin-betting
-            reduction with ONS as base optimizer. Scinol corresponds to scale-invariant
-            online learning algorithm.
+                            parameter groups.
+        eps (float):       Regret at 0 of outer optimizer (initial wealth).
+        eps_v (float):     Regret at 0 of each coordinate of inner optimizer
+                            (per-coordinate initial wealth).
+        inner (Callable):  Inner optimizer. ONSBet corresponds to using coin-betting
+                            reduction with ONS as base optimizer. Scinol corresponds
+                            to scale-invariant online learning algorithm
+                            (https://arxiv.org/pdf/1902.07528.pdf). (TODO)
     """
 
     @staticmethod
     def betting_loss(gt, vt):
         return -torch.log(1 - gt.view(-1) @ vt.view(-1))
 
-    def __init__(
-        self,
-        params: _params_t,
-        eps: float = 1.,
-        eps_v: float = 1.,
-        inner: Optimizer = ONSBet,
-    ):
+    def __init__(self, params: _params_t, eps: float = 1., eps_v: float = 1.,
+                 inner: Optimizer = ONSBet):
         defaults = dict(eps=eps, inner=inner)
         super(Recursive, self).__init__(params, defaults)
         for group in self.param_groups:  # State initialization
-            inner = group["inner"]
-            for p in group["params"]:
+            inner = group['inner']
+            # print(inner)
+            for p in group['params']:
                 state = self.state[p]
-                state["vt"] = p.clone().detach().requires_grad_(True)
-                state["inner"] = inner([state["vt"]])
-                state["wealth"] = torch.tensor(eps)
-                state["max_grad"] = torch.tensor(1e-8)
+                state['vt'] = p.clone().detach().requires_grad_(True)
+                state['inner'] = inner([state['vt']])
+                state['wealth'] = torch.tensor(eps)
+                state['max_grad'] = torch.tensor(1e-8)
 
     def step(self, closure: Optional[Callable[[], float]] = None) -> Optional[float]:
         r"""Performs a single optimization step.
@@ -151,16 +148,16 @@ class Recursive(Optimizer):
 
                 # pass gradients to inner and update state
                 wealth.add_(grad.view(-1) @ p.view(-1), alpha=-1)
-                if inner == Scinol:
-                    inner.step(grad)
-                    inner.zero_grad()
-                    inner_loss = self.betting_loss(grad, vt)
-                    inner_loss.backward()
-                else:
-                    inner.zero_grad()
-                    inner_loss = self.betting_loss(grad, vt)
-                    inner_loss.backward()
-                    inner.step()
+                if repr(inner).split()[0] == 'Scinol':
+                    inner.update(grad)
+                inner.zero_grad()
+                with torch.no_grad():
+                    # we need to ensure that vt € [-0.5, 0.5]
+                    # otherwise the wealth can become negative
+                    vt.clamp_(-.5, .5)
+                inner_loss = self.betting_loss(grad, vt)
+                inner_loss.backward()
+                inner.step()
                 p.data = wealth * vt
 
         return loss
