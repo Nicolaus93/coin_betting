@@ -8,7 +8,6 @@ from .optimizer import Optimizer
 from .types import Params, LossClosure, Optional, State
 
 
-
 class SGDOL(Optimizer):
     r"""Implement the SGDOL Algorithm.
 
@@ -63,11 +62,6 @@ class SGDOL(Optimizer):
     def __setstate__(self, state: State) -> None:
         super(SGDOL, self).__setstate__(state)
 
-    def grid_search_params(self):
-        ranges = {}
-        ranges['smoothness'] = [10, 1e4, 'gen', 4]
-        ranges['alpha'] = [10, 1e4, 'gen', 4]
-        return ranges
     def step(self, closure: Optional[LossClosure] = None) -> Optional[float]:
         """Performs a single optimization step.
 
@@ -94,7 +88,7 @@ class SGDOL(Optimizer):
 
                     first_grad = p.grad.data
                     if weight_decay != 0:
-                        first_grad.add_(p.data, alpha = weight_decay)
+                        first_grad.add_(p.data, alpha=weight_decay)
                     if first_grad.is_sparse:
                         raise RuntimeError(
                             'SGDOL does not support sparse gradients')
@@ -110,7 +104,7 @@ class SGDOL(Optimizer):
 
                     second_grad = p.grad.data
                     if weight_decay != 0:
-                        second_grad.add_(p.data, alpha = weight_decay)
+                        second_grad.add_(p.data, alpha=weight_decay)
                     if second_grad.is_sparse:
                         raise RuntimeError(
                             'SGDOL does not support sparse gradients')
@@ -149,7 +143,7 @@ class SGDOL(Optimizer):
 
                     first_grad = state['first_grad']
 
-                    p.data.add_(first_grad, alpha = -lr)
+                    p.data.add_(first_grad, alpha=-lr)
 
         self._is_first_grad = not self._is_first_grad
 
