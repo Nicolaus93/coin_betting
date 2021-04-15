@@ -7,7 +7,7 @@ from Data.scripts import config
 import argparse
 from tqdm import tqdm
 import os
-# reproducability
+#reproducability
 torch.manual_seed(1)
 #get a list of all optimizers in the module and exclude the parent class Optimizer
 optimizers_list = [
