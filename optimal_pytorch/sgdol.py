@@ -1,11 +1,11 @@
-"""
-Created on Mar 14th, 2020
+import torch
+from torch.optim import Optimizer
+from typing import TYPE_CHECKING, Any, Optional, Callable
 
-@author Zhenxun Zhuang.
-"""
-
-from .optimizer import Optimizer
-from .types import Params, LossClosure, Optional, State
+if TYPE_CHECKING:
+    from torch.optim.optimizer import _params_t
+else:
+    _params_t = Any
 
 
 class SGDOL(Optimizer):
@@ -31,7 +31,7 @@ class SGDOL(Optimizer):
 
     def __init__(
         self,
-        params: Params,
+        params: _params_t,
         smoothness: float = 10.0,
         alpha: float = 10.0,
         weight_decay: float = 0
@@ -59,10 +59,7 @@ class SGDOL(Optimizer):
         self._sum_grad_normsq = alpha
         self._lr = 1.0 / smoothness
 
-    def __setstate__(self, state: State) -> None:
-        super(SGDOL, self).__setstate__(state)
-
-    def step(self, closure: Optional[LossClosure] = None) -> Optional[float]:
+    def step(self, closure: Optional[Callable[[], float]] = None) -> Optional[float]:
         """Performs a single optimization step.
 
         Arguments:

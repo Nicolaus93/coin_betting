@@ -12,6 +12,8 @@ from .sgdol import SGDOL              # noqa: F401
 from .cocob import Cocob              # noqa: F401
 from .recursive import Recursive      # noqa: F401
 from .regralizer import Regralizer    # noqa: F401
+from .scinol2 import Scinol2          # noqa: F401
+from .onsbet import ONSBet            # noqa: F401
 
 
 __all__ = [
@@ -19,4 +21,5 @@ __all__ = [
     'Cocob',
     'Recursive',
     'Regralizer',
-    'Scinol2']
+    'Scinol2',
+    'ONSBet']

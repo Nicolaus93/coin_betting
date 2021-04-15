@@ -38,6 +38,7 @@ class ONSBet(Optimizer):
                 state["zt_sum"] = torch.zeros_like(p)
                 state["max_grad"] = torch.full_like(p, 1e-8)
 
+    @torch.no_grad()
     def step(self, closure: Optional[Callable[[], float]] = None) -> Optional[float]:
         r"""Performs a single optimization step.
         Arguments:

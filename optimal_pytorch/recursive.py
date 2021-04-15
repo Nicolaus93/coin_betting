@@ -1,7 +1,7 @@
 import torch
 from torch.optim import Optimizer
 from typing import TYPE_CHECKING, Any, Optional, Callable
-from scinol2 import Scinol2
+from .scinol2 import Scinol2
 
 if TYPE_CHECKING:
     from torch.optim.optimizer import _params_t
