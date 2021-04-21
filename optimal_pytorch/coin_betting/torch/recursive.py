@@ -37,6 +37,11 @@ class Recursive(Optimizer):
 
     def __init__(self, params: _params_t, eps: float = 1., eps_v: float = 1.,
                  inner: Optimizer = Scinol2):
+        if not 0.0 < eps:
+            raise ValueError("Invalid eps (outer wealth) value: {}".format(eps))
+        if not 0.0 < eps_v:
+            raise ValueError("Invalid eps_v (inner wealth) value: {}".format(eps_v))
+
         defaults = dict(eps=eps, inner=inner)
         super(Recursive, self).__init__(params, defaults)
         for group in self.param_groups:  # State initialization

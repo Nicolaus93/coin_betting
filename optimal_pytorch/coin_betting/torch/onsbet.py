@@ -27,8 +27,12 @@ class ONSBet(Optimizer):
     """
 
     def __init__(self, params: _params_t, eps: float = 1.):
+        if not 0.0 < eps:
+            raise ValueError("Invalid eps (initial wealth) value: {}".format(eps))
+
         defaults = dict(eps=eps)
         super(ONSBet, self).__init__(params, defaults)
+
         for group in self.param_groups:  # state initialization
             for p in group["params"]:
                 state = self.state[p]
