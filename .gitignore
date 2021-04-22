@@ -1,8 +1,8 @@
 optimal_pytorch.egg-info/
-examples/__pycache/
-tests/__pycache__/
-optimal_pytorch/__pycache__/
 __pycache__/
-Data/__pycache__/
 Data/MNIST/
-experimenta/__pycache__/
+examples/MNIST/data
+examples/MNIST/runs
+examples/grid_search/tune_results
+.DS_Store
+.vscode
