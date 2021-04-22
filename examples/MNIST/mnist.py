@@ -5,9 +5,9 @@ import torchvision
 import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.optim import SGD
-from optimal_pytorch.optim import CoinBetting
+from optimal_pytorch.coin_betting.torch import Cocob
 from torch.utils.tensorboard import SummaryWriter
+from pathlib import Path
 import os
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
@@ -50,14 +50,14 @@ def loaders(train_size=4, test_size=64, num_workers=2):
          transforms.Normalize((0.5,), (0.5,))])
 
     trainset = torchvision.datasets.MNIST(
-        root="./data", train=True, download=True, transform=transform)
+        root=Path(__file__).parent.absolute() / "data", train=True, download=True, transform=transform)
 
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=train_size, shuffle=True, num_workers=num_workers)
 
     # Preparing test set in the data folder.
     testset = torchvision.datasets.MNIST(
-        root="./data", train=False, download=True, transform=transform)
+        root=Path(__file__).parent.absolute() / "data", train=False, download=True, transform=transform)
 
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=test_size, shuffle=False, num_workers=num_workers)
@@ -140,8 +140,8 @@ def plot_classes_preds(net, images, labels):
 if __name__ == "__main__":
     net = Net()
     criterion = nn.CrossEntropyLoss()
-    # optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
-    optimizer = CoinBetting(net.parameters())
+    optimizer = Cocob(net.parameters())
     trainloader, testloader = loaders()
-    writer = SummaryWriter('runs/MNIST_experiment_{}'.format(type(optimizer).__name__))
+    p = Path(__file__).parent.absolute() / 'runs/MNIST_experiment_{}'.format(type(optimizer).__name__)
+    writer = SummaryWriter(p)
     training(net, criterion, optimizer, trainloader, testloader, writer)
