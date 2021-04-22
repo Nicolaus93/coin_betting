@@ -6,3 +6,5 @@ examples/MNIST/runs
 examples/grid_search/tune_results
 .DS_Store
 .vscode
+.pytest_cache/
+tests/.coverage
