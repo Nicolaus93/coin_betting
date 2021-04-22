@@ -77,6 +77,12 @@ class Recursive(Optimizer):
 
                 # rescale gradients
                 grad = p.grad
+                if grad.is_sparse:
+                    msg = (
+                        'Recursive does not support sparse gradients!'
+                    )
+                    raise RuntimeError(msg)
+
                 torch.max(torch.norm(grad, p=1).detach(), max_grad, out=max_grad)
                 grad = grad / (2 * max_grad)
 

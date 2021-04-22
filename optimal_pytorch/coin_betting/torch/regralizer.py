@@ -57,6 +57,12 @@ class Regralizer(Optimizer):
                     continue
 
                 grad = p.grad
+                if grad.is_sparse:
+                    msg = (
+                        'Regralizer does not support sparse gradients!'
+                    )
+                    raise RuntimeError(msg)
+
                 state = self.state[p]
 
                 # retrieve params

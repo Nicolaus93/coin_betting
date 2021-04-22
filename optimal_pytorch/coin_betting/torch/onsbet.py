@@ -58,6 +58,7 @@ class ONSBet(Optimizer):
                 if p.grad is None:
                     continue
 
+
                 # retrieve state
                 state = self.state[p]
                 max_grad = state["max_grad"]
@@ -68,6 +69,12 @@ class ONSBet(Optimizer):
 
                 # compute gradients
                 grad = p.grad
+                if grad.is_sparse:
+                    msg = (
+                        'ONSBet does not support sparse gradients!'
+                    )
+                    raise RuntimeError(msg)
+
                 torch.max(max_grad, torch.abs(grad), out=max_grad)
                 grad /= max_grad
                 xt = vt * wealth               # retrieve old x_t

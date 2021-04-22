@@ -23,6 +23,7 @@ class Ackley(GenericLoss):
     """
     The Ackley function is widely used for testing optimization algorithms.
     It is characterized by a nearly flat outer region, and a large hole at the centre.
+    See https://www.sfu.ca/~ssurjano/ackley.html
 
     References:
         - Adorio, E. P., & Diliman, U. P. MVF
@@ -42,19 +43,20 @@ class Ackley(GenericLoss):
         self.a = a
         self.b = b
         self.c = c
+        self.dim = None
 
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         d = x.shape[0]
+        if d != self.dim:
+            self.dim = d
         s1 = torch.norm(x / d)
         s2 = torch.cos(self.c * x).sum() / d
         return -self.a * torch.exp(-self.b * s1) - torch.exp(s2) + self.a + exp(1)
 
     def minimum(self) -> torch.Tensor:
-        # review
+        if self.dim:
+            return torch.zeros(self.dim)
         return torch.zeros(2)
-
-    def __repr__(self) -> str:
-        return "ToDo"
 
 
 class Absolute(GenericLoss):
@@ -105,7 +107,8 @@ class Quadratic(GenericLoss):
 class Sinusoidal(GenericLoss):
     """
     Function defined in http://infinity77.net/global_optimization/test_functions_1d.html
-    f(x) = -x * sin(x), for x in [0, 10].
+    See Problem 10.
+        f(x) = -x * sin(x), for x in [0, 10].
     """
 
     def __init__(self):
@@ -130,6 +133,7 @@ class Synthetic(GenericLoss):
         return
 
     def minimum(self) -> torch.float:
+        # this is not a minimum but rather a stationary point
         return torch.tensor(0.5, dtype=torch.float)
 
     def __call__(self, x: torch.Tensor) -> torch.Tensor:

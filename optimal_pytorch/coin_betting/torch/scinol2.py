@@ -74,6 +74,11 @@ class Scinol2(Optimizer):
                     continue
 
                 grad = p.grad
+                if grad.is_sparse:
+                    msg = (
+                        'Scinol2 does not support sparse gradients!'
+                    )
+                    raise RuntimeError(msg)
 
                 # retrieve parameters
                 state = self.state[p]

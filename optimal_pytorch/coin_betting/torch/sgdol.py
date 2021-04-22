@@ -88,7 +88,7 @@ class SGDOL(Optimizer):
                         first_grad.add_(p.data, alpha=weight_decay)
                     if first_grad.is_sparse:
                         raise RuntimeError(
-                            'SGDOL does not support sparse gradients')
+                            'SGDOL does not support sparse gradients!')
 
                     state['first_grad'] = first_grad.clone()
         else:
@@ -104,7 +104,7 @@ class SGDOL(Optimizer):
                         second_grad.add_(p.data, alpha=weight_decay)
                     if second_grad.is_sparse:
                         raise RuntimeError(
-                            'SGDOL does not support sparse gradients')
+                            'SGDOL does not support sparse gradients!')
 
                     state = self.state[p]
                     if state['first_grad'] is None:

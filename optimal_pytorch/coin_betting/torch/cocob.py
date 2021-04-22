@@ -61,8 +61,7 @@ class Cocob(Optimizer):
                 grad = -p.grad.data  # negative gradient
                 if grad.is_sparse:
                     msg = (
-                        'Cocob does not support sparse gradients, '
-                        'please consider SparseAdam instead.'
+                        'Cocob does not support sparse gradients!'
                     )
                     raise RuntimeError(msg)
 
