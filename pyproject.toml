@@ -1,0 +1,12 @@
+[build-system]
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "optimal_pytorch"
+author = "Nicolò Campolongo, Vibhu Bhatia, Zhenxun Zhuang"
+author-email = "nico.campolongo@gmail.com"
+home-page = "https://github.com/bremen79/optimal-pytorch/"
+classifiers = [ "License :: OSI Approved :: MIT License",]
+description-file = "README.md"
+
