@@ -38,11 +38,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          make deps
+          pip install black coverage flake8 flit mccabe mypy pylint pytest tox tox-gh-actions
 
       - name: Run tox
         run: |
-          make tox
+          python -m tox
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
