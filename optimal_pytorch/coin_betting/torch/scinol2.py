@@ -1,6 +1,6 @@
-import torch
-from torch.optim import Optimizer
 from typing import TYPE_CHECKING, Any, Optional, Callable
+import torch
+import torch.optim
 
 if TYPE_CHECKING:
     from torch.optim.optimizer import _params_t
@@ -8,12 +8,11 @@ else:
     _params_t = Any
 
 
-__all__ = ('Scinol2',)
+__all__ = ("Scinol2",)
 
 
-class Scinol2(Optimizer):
-    """
-    Implements SCale INvariant ONline Learning 2 (SCINOL2) algorithm.
+class Scinol2(torch.optim.Optimizer):
+    r"""Implements SCale INvariant ONline Learning 2 (SCINOL2) algorithm.
 
     Proposed in "Adaptive Scale-Invariant Online Algorithms for Learning Linear Models",
     https://arxiv.org/pdf/1902.07528.pdf
@@ -24,12 +23,12 @@ class Scinol2(Optimizer):
         eps (float): Regret at 0 of outer optimizer (initial wealth).
     """
 
-    def __init__(self, params: _params_t, eps: float = 1.):
-        if not 0.0 < eps:
+    def __init__(self, params: _params_t, eps: float = 1.0):
+        if eps < 0.0:
             raise ValueError(f"Invalid eps value: {eps}")
 
         defaults = dict(eps=eps)
-        super(Scinol2, self).__init__(params, defaults)
+        super().__init__(params, defaults)
         for group in self.param_groups:  # State initialization
             eps = group["eps"]
             for p in group["params"]:
@@ -40,7 +39,13 @@ class Scinol2(Optimizer):
                 state["eta"] = torch.full_like(p, eps)
 
     def update(self, xt: torch.Tensor) -> None:
-
+        r"""
+        Scinol2 is an improper algorithm, meaning it has access to the next feature
+        vector before providing a prediction in output. It then uses this information
+        to update its state.
+        Arguments:
+            xt: feature vector for the "next" round.
+        """
         for group in self.param_groups:
             for p in group["params"]:
 
@@ -54,9 +59,12 @@ class Scinol2(Optimizer):
                 torch.max(M, torch.abs(xt).detach(), out=M)
                 helper = torch.sqrt(S_square + torch.square(M))
                 theta = G / helper
-                p.data = eta * torch.sign(theta) * torch.min(
-                    torch.abs(theta), torch.ones_like(theta)
-                ) / (2 * helper)
+                p.data = (
+                    eta
+                    * torch.sign(theta)
+                    * torch.min(torch.abs(theta), torch.ones_like(theta))
+                    / (2 * helper)
+                )
 
     def step(self, closure: Optional[Callable[[], float]] = None) -> Optional[float]:
         r"""Performs a single optimization step.
@@ -75,9 +83,7 @@ class Scinol2(Optimizer):
 
                 grad = p.grad
                 if grad.is_sparse:
-                    msg = (
-                        'Scinol2 does not support sparse gradients!'
-                    )
+                    msg = "Scinol2 does not support sparse gradients!"
                     raise RuntimeError(msg)
 
                 # retrieve parameters

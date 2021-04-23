@@ -1,6 +1,9 @@
-import torch
+"""
+This module contains implementations of various test functions.
+"""
 from abc import ABC, abstractmethod
 from math import pi, exp
+import torch
 
 
 class GenericLoss(ABC):
@@ -12,11 +15,15 @@ class GenericLoss(ABC):
 
     @abstractmethod
     def minimum(self) -> torch.Tensor:
-        pass
+        """
+        Returns the point where the value of the loss function is minimized.
+        """
 
     @abstractmethod
-    def __call__(self, x: torch.Tensor) -> torch.Tensor:
-        pass
+    def __call__(self, input_point: torch.Tensor) -> torch.Tensor:
+        """
+        Evaluates the function in input_point.
+        """
 
 
 class Ackley(GenericLoss):
@@ -27,36 +34,39 @@ class Ackley(GenericLoss):
 
     References:
         - Adorio, E. P., & Diliman, U. P. MVF
-        Multivariate Test Functions Library in C for Unconstrained Global Optimization (2005).
-        Retrieved June 2013, from http://http://www.geocities.ws/eadorio/mvf.pdf.
+        Multivariate Test Functions Library in C for Unconstrained
+        Global Optimization (2005), from http://http://www.geocities.ws/eadorio/mvf.pdf.
 
         - Molga, M., & Smutnicki, C.
         Test functions for optimization needs (2005).
-        Retrieved June 2013, from http://www.zsd.ict.pwr.wroc.pl/files/docs/functions.pdf.
+        From http://www.zsd.ict.pwr.wroc.pl/files/docs/functions.pdf.
 
         - Back, T. (1996).
         Evolutionary algorithms in theory and practice: evolution strategies,
         evolutionary programming, genetic algorithms. Oxford University Press on Demand.
     """
 
-    def __init__(self, a: float = 20., b: float = .2, c: float = 2 * pi):
-        self.a = a
-        self.b = b
-        self.c = c
-        self.dim = None
+    def __init__(self, a: float = 20.0, b: float = 0.2, c: float = 2 * pi):
+        self.slope = a
+        self.offset = b
+        self.bias = c
+        self.dim = 2
 
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
-        d = x.shape[0]
-        if d != self.dim:
-            self.dim = d
-        s1 = torch.norm(x / d)
-        s2 = torch.cos(self.c * x).sum() / d
-        return -self.a * torch.exp(-self.b * s1) - torch.exp(s2) + self.a + exp(1)
+        dim = x.shape[0]
+        if dim != self.dim:
+            self.dim = dim
+        sum1 = torch.norm(x / dim)
+        sum2 = torch.cos(self.bias * x).sum() / dim
+        return (
+            -self.slope * torch.exp(-self.offset * sum1)
+            - torch.exp(sum2)
+            + self.slope
+            + exp(1)
+        )
 
     def minimum(self) -> torch.Tensor:
-        if self.dim:
-            return torch.zeros(self.dim)
-        return torch.zeros(2)
+        return torch.zeros(self.dim)
 
 
 class Absolute(GenericLoss):
@@ -65,21 +75,25 @@ class Absolute(GenericLoss):
     f(x) = a * |x - b| + c.
     """
 
-    def __init__(self, a: float = 1., b: float = 1., c: float = 1.):
-        self.a = a
-        self.b = b
-        self.c = c
+    def __init__(self, slope: float = 1.0, offset: float = 1.0, bias: float = 1.0):
+        self.slope = slope
+        self.offset = offset
+        self.bias = bias
 
     def minimum(self) -> torch.Tensor:
-        return torch.tensor(self.b, dtype=torch.float)
+        return torch.tensor(self.offset)
 
-    def __call__(self, x: torch.Tensor) -> torch.Tensor:
-        return self.a * torch.abs(x - self.b) + self.c
+    def __call__(self, input_point: torch.Tensor) -> torch.Tensor:
+        return self.slope * torch.abs(input_point - self.offset) + self.bias
 
     def __repr__(self) -> str:
-        a, b, c = self.a, self.b, self.c
-        sign = {True: '+', False: '-'}
-        return f"f(x) = {a:.2f} * |x {sign[b < 0]} {abs(b)}| {sign[c > 0]} {abs(c)}"
+        slope = self.slope
+        offset = self.offset
+        bias = self.bias
+        sign = {True: "+", False: "-"}
+        return "f(x) = {:.2f} * |x {} {}| {} {}".format(
+            slope, sign[offset < 0], abs(offset), sign[bias > 0], abs(bias)
+        )
 
 
 class Quadratic(GenericLoss):
@@ -88,20 +102,25 @@ class Quadratic(GenericLoss):
     f(x) = a * (x - b)^2 + c.
     """
 
-    def __init__(self, a: float = 1., b: float = 1., c: float = 1.):
-        self.a = a
-        self.b = b
-        self.c = c
+    def __init__(self, slope: float = 1.0, offset: float = 1.0, bias: float = 1.0):
+        self.slope = slope
+        self.offset = offset
+        self.bias = bias
 
-    def minimum(self) -> torch.float:
-        return self.b
+    def minimum(self) -> torch.Tensor:
+        return torch.tensor(self.offset)
 
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
-        return self.a * (x - self.b)**2 + self.c
+        return self.slope * (x - self.offset) ** 2 + self.bias
 
     def __repr__(self) -> str:
-        sign = {True: '+', False: '-'}
-        return f"f(x) = {a:.2f} * (x {sign[b > 0]} {abs(b)})^2 {sign[c > 0]} {abs(c)}"
+        slope = self.slope
+        offset = self.offset
+        bias = self.bias
+        sign = {True: "+", False: "-"}
+        return "f(x) = {:.2f} * (x {} {})^2 {} {}".format(
+            slope, sign[offset > 0], abs(offset), sign[bias > 0], abs(bias)
+        )
 
 
 class Sinusoidal(GenericLoss):
@@ -114,8 +133,8 @@ class Sinusoidal(GenericLoss):
     def __init__(self):
         return
 
-    def minimum(self) -> torch.float:
-        return torch.tensor(7.9787, dtype=torch.float)
+    def minimum(self) -> torch.Tensor:
+        return torch.tensor(7.9787)
 
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return -x * torch.sin(x)
@@ -132,20 +151,20 @@ class Synthetic(GenericLoss):
     def __init__(self):
         return
 
-    def minimum(self) -> torch.float:
+    def minimum(self) -> torch.Tensor:
         # this is not a minimum but rather a stationary point
-        return torch.tensor(0.5, dtype=torch.float)
+        return torch.tensor(0.5)
 
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         sample = torch.rand(1, dtype=torch.float)
         if sample < 0.002:
-            loss = 999 * (x**2) / 2
+            loss = 999 * (x ** 2) / 2
         else:
             loss = -x
         return loss
 
     def __repr__(self) -> str:
-        return f"f(x) = 999 * x^2 / 2 with prob 0.002, -x otherwise."
+        return "f(x) = 999 * x^2 / 2 with prob 0.002, -x otherwise."
 
 
 class InvGaussian(GenericLoss):
@@ -155,17 +174,17 @@ class InvGaussian(GenericLoss):
     std = standard deviation for gaussian function pdf
     """
 
-    def __init__(self, mu: float = 0., std: float = 1.):
-        self.mu = mu
+    def __init__(self, mean: float = 0.0, std: float = 1.0):
+        self.mean = mean
         self.std = std
 
-    def minimum(self) -> float:
-        return self.mu
+    def minimum(self) -> torch.Tensor:
+        return torch.tensor(self.mean)
 
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         sigma = self.std
-        mu = self.mu
-        return -torch.exp((-.5 * (x - mu) / sigma)**2) / (sigma * (2 * pi)**.5)
+        mean = self.mean
+        return -torch.exp((-0.5 * (x - mean) / sigma) ** 2) / (sigma * (2 * pi) ** 0.5)
 
     def __repr__(self) -> str:
-        return f"Inverted Gaussian pdf centered at {self.mu} with sigma={self.std}"
+        return f"Inverted Gaussian pdf centered at {self.mean} with sigma={self.std}"

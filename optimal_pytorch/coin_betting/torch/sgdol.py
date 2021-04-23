@@ -1,6 +1,5 @@
-import torch
-from torch.optim import Optimizer
 from typing import TYPE_CHECKING, Any, Optional, Callable
+from torch.optim.optimizer import Optimizer
 
 if TYPE_CHECKING:
     from torch.optim.optimizer import _params_t
@@ -34,33 +33,31 @@ class SGDOL(Optimizer):
         params: _params_t,
         smoothness: float = 10.0,
         alpha: float = 10.0,
-        weight_decay: float = 0
+        weight_decay: float = 0.0,
     ) -> None:
-        if smoothness < 0.0:
-            raise ValueError("Invalid smoothness value: {}".format(smoothness))
+        if smoothness <= 0.0:
+            raise ValueError(f"Invalid smoothness value: {smoothness}")
         if alpha < 0.0:
-            raise ValueError("Invalid alpha value: {}".format(alpha))
+            raise ValueError(f"Invalid alpha value: {alpha}")
         if weight_decay < 0.0:
-            raise ValueError(
-                "Invalid weight_decay value: {}".format(weight_decay))
+            raise ValueError(f"Invalid weight_decay value: {weight_decay}")
 
-        defaults = dict(
-            smoothness=smoothness,
-            alpha=alpha,
-            weight_decay=weight_decay)
-        super(SGDOL, self).__init__(params, defaults)
-
-        self._smoothness = smoothness
-
-        # Indicate whether we have obtained two stochastic gradients.
-        self._is_first_grad = True
-        # Initialization.
-        self._sum_inner_prods = alpha
-        self._sum_grad_normsq = alpha
-        self._lr = 1.0 / smoothness
+        defaults = dict(smoothness=smoothness, alpha=alpha, weight_decay=weight_decay)
+        super().__init__(params, defaults)
+        for group in self.param_groups:  # state initialization
+            alpha = group["alpha"]
+            smoothness = group["smoothness"]
+            for p in group["params"]:
+                state = self.state[p]
+                state["sum_inner_prods"] = alpha
+                state["sum_grad_normsq"] = alpha
+                state["lr"] = 1.0 / smoothness
+                state[
+                    "is_first_grad"
+                ] = True  # Indicate whether we have obtained two stochastic gradients.
 
     def step(self, closure: Optional[Callable[[], float]] = None) -> Optional[float]:
-        """Performs a single optimization step.
+        r"""Performs a single optimization step.
 
         Arguments:
             closure (callable, optional): A closure that reevaluates the model
@@ -70,78 +67,52 @@ class SGDOL(Optimizer):
         if closure is not None:
             loss = closure()
 
-        if self._is_first_grad:
-            # If it is the first mini-batch, just save the gradient for later
-            # use and continue.
-            for group in self.param_groups:
-                weight_decay = group['weight_decay']
+        for group in self.param_groups:
+            weight_decay = group["weight_decay"]
+            smoothness = group["smoothness"]
 
-                for p in group['params']:
-                    state = self.state[p]
+            for p in group["params"]:
+                state = self.state[p]
 
-                    if p.grad is None:
-                        state['first_grad'] = None
+                if p.grad is None:
+                    if state["is_first_grad"]:
+                        state["first_grad"] = None
+                        state["is_first_grad"] = False
+                    # if it's second grad, just skip this round
+                    continue
+
+                grad = p.grad
+                if grad.is_sparse:
+                    raise RuntimeError("SGDOL does not support sparse gradients!")
+                if weight_decay != 0:
+                    grad.add_(p.data, alpha=weight_decay)
+
+                if state["is_first_grad"]:
+                    # If it is the first mini-batch, just save the gradient for later
+                    # use and continue.
+                    state["first_grad"] = grad.clone().detach()
+                else:
+                    first_grad = state["first_grad"]
+                    if first_grad is None:
                         continue
-
-                    first_grad = p.grad.data
-                    if weight_decay != 0:
-                        first_grad.add_(p.data, alpha=weight_decay)
-                    if first_grad.is_sparse:
-                        raise RuntimeError(
-                            'SGDOL does not support sparse gradients!')
-
-                    state['first_grad'] = first_grad.clone()
-        else:
-            for group in self.param_groups:
-                weight_decay = group['weight_decay']
-
-                for p in group['params']:
-                    if p.grad is None:
-                        continue
-
-                    second_grad = p.grad.data
-                    if weight_decay != 0:
-                        second_grad.add_(p.data, alpha=weight_decay)
-                    if second_grad.is_sparse:
-                        raise RuntimeError(
-                            'SGDOL does not support sparse gradients!')
-
-                    state = self.state[p]
-                    if state['first_grad'] is None:
-                        continue
-
-                    first_grad = state['first_grad']
 
                     # Accumulate ||g_t||^2_2.
                     first_grad_norm = first_grad.norm()
-                    first_grad_normsq = first_grad_norm * first_grad_norm
-                    self._sum_grad_normsq += float(first_grad_normsq)
+                    first_grad_normsq = first_grad_norm.pow(2)
+                    state["sum_grad_normsq"] += first_grad_normsq.item()
 
                     # Accumulate <g_t, g'_t>.
-                    cip = second_grad.view(-1).dot(first_grad.view(-1))
-                    self._sum_inner_prods += float(cip)
+                    cip = grad.view(-1) @ first_grad.view(-1)
+                    state["sum_inner_prods"] += cip.item()
 
-            # Compute the step-size of the next round.
-            lr = self._lr
-            smoothness = self._smoothness
-            lr_next = self._sum_inner_prods / (smoothness * self._sum_grad_normsq)
-            lr_next = max(min(lr_next, 2.0 / smoothness), 0.0)
-            self._lr = lr_next
-
-            # Update the parameters.
-            for group in self.param_groups:
-                for p in group['params']:
-                    if p.grad is None:
-                        continue
-
-                    state = self.state[p]
-                    if state['first_grad'] is None:
-                        continue
-
-                    first_grad = state['first_grad']
-
+                    # Compute the step-size of the next round and update the parameters.
+                    lr = state["sum_inner_prods"] / (
+                        smoothness * state["sum_grad_normsq"]
+                    )
+                    lr = max(min(lr, 2.0 / smoothness), 0.0)
                     p.data.add_(first_grad, alpha=-lr)
 
-        self._is_first_grad = not self._is_first_grad
+                # update state
+                state["is_first_grad"] = not state["is_first_grad"]
 
         return loss
