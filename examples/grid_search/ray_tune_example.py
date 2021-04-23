@@ -18,7 +18,11 @@ def experiment(config):
             loss_config = {**config["loss"][loss]}
             opt_params = config["optimizer"][opt]
             opt_config = {i: tune.grid_search(opt_params[i]) for i in opt_params}
-            exp_config = {**loss_config, **opt_config, "hyperparams": [i for i in opt_params]}
+            exp_config = {
+                **loss_config,
+                **opt_config,
+                "hyperparams": [i for i in opt_params],
+            }
             loss_fn = eval(loss)
             optimizer = eval(opt)
             run = partial(single_run, loss=loss_fn, opt=optimizer)
@@ -29,7 +33,8 @@ def experiment(config):
                 metric="avg_subopt_gap",
                 mode="min",
                 num_samples=1,
-                config=exp_config)
+                config=exp_config,
+            )
             yield analysis, opt, loss
 
 
@@ -71,8 +76,8 @@ if __name__ == "__main__":
         for opt in best[loss]:
             ax = best[loss][opt].avg_subopt_gap.plot(ax=ax)
             names.append(opt)
-        ax.set_xlabel('Iteration')
-        ax.set_ylabel('Avg subopt gap')
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Avg subopt gap")
         ax.set_title(f"{loss} loss")
         ax.legend(names)
         plt.show()

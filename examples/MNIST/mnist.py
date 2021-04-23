@@ -9,7 +9,8 @@ from optimal_pytorch.coin_betting.torch import Cocob
 from torch.utils.tensorboard import SummaryWriter
 from pathlib import Path
 import os
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+
+os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 
 class Net(nn.Module):
@@ -35,7 +36,7 @@ class Net(nn.Module):
 def matplotlib_imshow(img, one_channel=False):
     if one_channel:
         img = img.mean(dim=0)
-    img = img / 2 + 0.5     # unnormalize
+    img = img / 2 + 0.5  # unnormalize
     npimg = img.numpy()
     if one_channel:
         plt.imshow(npimg, cmap="Greys")
@@ -46,21 +47,31 @@ def matplotlib_imshow(img, one_channel=False):
 def loaders(train_size=4, test_size=64, num_workers=2):
 
     transform = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize((0.5,), (0.5,))])
+        [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
+    )
 
     trainset = torchvision.datasets.MNIST(
-        root=Path(__file__).parent.absolute() / "data", train=True, download=True, transform=transform)
+        root=Path(__file__).parent.absolute() / "data",
+        train=True,
+        download=True,
+        transform=transform,
+    )
 
     trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=train_size, shuffle=True, num_workers=num_workers)
+        trainset, batch_size=train_size, shuffle=True, num_workers=num_workers
+    )
 
     # Preparing test set in the data folder.
     testset = torchvision.datasets.MNIST(
-        root=Path(__file__).parent.absolute() / "data", train=False, download=True, transform=transform)
+        root=Path(__file__).parent.absolute() / "data",
+        train=False,
+        download=True,
+        transform=transform,
+    )
 
     testloader = torch.utils.data.DataLoader(
-        testset, batch_size=test_size, shuffle=False, num_workers=num_workers)
+        testset, batch_size=test_size, shuffle=False, num_workers=num_workers
+    )
 
     return trainloader, testloader
 
@@ -91,15 +102,18 @@ def training(net, criterion, optimizer, trainloader, testloader, writer, epochs=
 
                 # log the running loss
                 writer.add_scalar(
-                    'training loss', running_loss / 1000, epoch * len(trainloader) + i)
+                    "training loss", running_loss / 1000, epoch * len(trainloader) + i
+                )
 
                 # log a Matplotlib Figure showing the model's predictions on a
                 # random mini-batch
                 writer.add_figure(
-                    'predictions vs. actuals', plot_classes_preds(net, inputs, labels),
-                    global_step=epoch * len(trainloader) + i)
+                    "predictions vs. actuals",
+                    plot_classes_preds(net, inputs, labels),
+                    global_step=epoch * len(trainloader) + i,
+                )
                 running_loss = 0.0
-    print('Finished Training')
+    print("Finished Training")
 
 
 def images_to_probs(net, images):
@@ -115,13 +129,13 @@ def images_to_probs(net, images):
 
 
 def plot_classes_preds(net, images, labels):
-    '''
+    """
     Generates matplotlib Figure using a trained network, along with images
     and labels from a batch, that shows the network's top prediction along
     with its probability, alongside the actual label, coloring this
     information based on whether the prediction was correct or not.
     Uses the "images_to_probs" function.
-    '''
+    """
     preds, probs = images_to_probs(net, images)
     classes = [i for i in range(10)]
     # plot the images in the batch, along with predicted and true labels
@@ -129,11 +143,12 @@ def plot_classes_preds(net, images, labels):
     for idx in np.arange(4):
         ax = fig.add_subplot(1, 4, idx + 1, xticks=[], yticks=[])
         matplotlib_imshow(images[idx], one_channel=True)
-        ax.set_title("{0}, {1:.1f}%\n(label: {2})".format(
-            classes[preds[idx]],
-            probs[idx] * 100.0,
-            classes[labels[idx]]),
-            color=("green" if preds[idx] == labels[idx].item() else "red"))
+        ax.set_title(
+            "{0}, {1:.1f}%\n(label: {2})".format(
+                classes[preds[idx]], probs[idx] * 100.0, classes[labels[idx]]
+            ),
+            color=("green" if preds[idx] == labels[idx].item() else "red"),
+        )
     return fig
 
 
@@ -142,6 +157,8 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
     optimizer = Cocob(net.parameters())
     trainloader, testloader = loaders()
-    p = Path(__file__).parent.absolute() / 'runs/MNIST_experiment_{}'.format(type(optimizer).__name__)
+    p = Path(__file__).parent.absolute() / "runs/MNIST_experiment_{}".format(
+        type(optimizer).__name__
+    )
     writer = SummaryWriter(p)
     training(net, criterion, optimizer, trainloader, testloader, writer)
