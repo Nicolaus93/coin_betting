@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8]
+        python-version: [3.8]
 
     env:
       USING_COVERAGE: "3.8"
@@ -42,7 +42,7 @@ jobs:
 
       - name: Run tox
         run: |
-          python -m tox
+          tox -e py38
 
       - name: List files
         run: |
