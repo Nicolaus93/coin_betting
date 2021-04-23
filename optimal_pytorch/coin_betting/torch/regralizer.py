@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any, Optional, Callable
 import torch
-from torch.optim import Optimizer
+from torch.optim.optimizer import Optimizer
 from torch import norm
 
 if TYPE_CHECKING:

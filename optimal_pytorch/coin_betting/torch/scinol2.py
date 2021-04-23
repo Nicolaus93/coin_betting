@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any, Optional, Callable
 import torch
-import torch.optim
+from torch.optim.optimizer import Optimizer
 
 if TYPE_CHECKING:
     from torch.optim.optimizer import _params_t
@@ -11,7 +11,7 @@ else:
 __all__ = ("Scinol2",)
 
 
-class Scinol2(torch.optim.Optimizer):
+class Scinol2(Optimizer):
     r"""Implements SCale INvariant ONline Learning 2 (SCINOL2) algorithm.
 
     Proposed in "Adaptive Scale-Invariant Online Algorithms for Learning Linear Models",
