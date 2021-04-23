@@ -1,11 +1,6 @@
 .DEFAULT_GOAL := help
 .PHONY: coverage deps help lint push test tox
 
-coverage:  ## Run tests with coverage
-    coverage erase
-    coverage run --include=optimal_pytorch/* -m pytest tests/
-    coverage report -m
-
 deps:  ## Install dependencies
     pip install black coverage flake8 flit mccabe mypy pylint pytest tox tox-gh-actions
 
@@ -22,6 +17,11 @@ black:
 
 tox:   ## Run tox
     python -m tox
+
+coverage:  ## Run tests with coverage
+    coverage erase
+    coverage run --include=optimal_pytorch/* -m pytest tests/
+    coverage report -m
 
 help: ## Show help message
     @IFS=$$'\n' ; \
