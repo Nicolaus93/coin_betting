@@ -1,3 +1,3 @@
 # optimal-pytorch
 
-An updated version of the library.
+A library which combines Coin-Betting algorithms and test functions for optimization algorithms.
