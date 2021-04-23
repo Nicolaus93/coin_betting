@@ -23,7 +23,7 @@ jobs:
         python-version: [3.7, 3.8]
 
     env:
-      USING_COVERAGE: "3.8"
+      USING_COVERAGE: "3.9"
 
     steps:
       - name: Check-out the repo under $GITHUB_WORKSPACE
@@ -37,6 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install -r requirements.txt
           python -m pip install black coverage flake8 flit mccabe mypy pylint pytest tox tox-gh-actions
 
       - name: Run tox
