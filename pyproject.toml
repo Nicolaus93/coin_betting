@@ -1,4 +1,5 @@
 [build-system]
+requires-python = ">=3.8"
 requires = ["flit_core >=2,<4"]
 build-backend = "flit_core.buildapi"
 
@@ -9,4 +10,3 @@ author-email = "nico.campolongo@gmail.com"
 home-page = "https://github.com/bremen79/optimal-pytorch/"
 classifiers = [ "License :: OSI Approved :: MIT License",]
 description-file = "README.md"
-
