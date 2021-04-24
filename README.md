@@ -1,6 +1,6 @@
 # optimal-pytorch
 
-[![Build Status][build-image]][build-url]
+![Build Status](https://github.com/Nicolaus93/coin_betting/actions/workflows/build.yml/badge.svg)
 [![codecov](https://codecov.io/gh/Nicolaus93/coin_betting/branch/master/graph/badge.svg)](https://codecov.io/gh/Nicolaus93/coin_betting)
 [![Maintainability](https://api.codeclimate.com/v1/badges/62dcc62f012165d75a7f/maintainability)](https://codeclimate.com/github/Nicolaus93/coin_betting/maintainability)
 
