@@ -1,21 +1,24 @@
+import os
+from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from torch.nn.functional import softmax, relu
+from torch.utils.tensorboard import SummaryWriter
+import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
-import torch.nn as nn
-import torch.nn.functional as F
 from optimal_pytorch.coin_betting.torch import Cocob
-from torch.utils.tensorboard import SummaryWriter
-from pathlib import Path
-import os
+
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 
 class Net(nn.Module):
+    """Simple convolutional neural network."""
+
     def __init__(self):
-        super(Net, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(1, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, 5)
@@ -24,16 +27,18 @@ class Net(nn.Module):
         self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
+        """Net forward pass."""
+        x = self.pool(relu(self.conv1(x)))
+        x = self.pool(relu(self.conv2(x)))
         x = x.view(-1, 16 * 4 * 4)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
+        x = relu(self.fc1(x))
+        x = relu(self.fc2(x))
         x = self.fc3(x)
         return x
 
 
 def matplotlib_imshow(img, one_channel=False):
+    """Show the images from the dataset."""
     if one_channel:
         img = img.mean(dim=0)
     img = img / 2 + 0.5  # unnormalize
@@ -45,11 +50,13 @@ def matplotlib_imshow(img, one_channel=False):
 
 
 def loaders(train_size=4, test_size=64, num_workers=2):
+    """Define train and test loaders."""
 
     transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
     )
 
+    # Preparing train set in the data folder.
     trainset = torchvision.datasets.MNIST(
         root=Path(__file__).parent.absolute() / "data",
         train=True,
@@ -76,11 +83,13 @@ def loaders(train_size=4, test_size=64, num_workers=2):
     return trainloader, testloader
 
 
-def training(net, criterion, optimizer, trainloader, testloader, writer, epochs=2):
+def training(net, criterion, optimizer, loader, writer):
+    """Train the neural network."""
+
     print("Now training..")
     running_loss = 0.0
-    for epoch in range(epochs):
-        for i, data in enumerate(trainloader, 0):
+    for epoch in range(2):
+        for i, data in enumerate(loader, 0):
 
             # get the inputs;
             # data is a list of [inputs, labels]
@@ -97,12 +106,12 @@ def training(net, criterion, optimizer, trainloader, testloader, writer, epochs=
 
             running_loss += loss.item()
 
-            # every 1000 mini-batches...
+            # every 1000 mini-batches
             if i % 1000 == 999:
 
                 # log the running loss
                 writer.add_scalar(
-                    "training loss", running_loss / 1000, epoch * len(trainloader) + i
+                    "training loss", running_loss / 1000, epoch * len(loader) + i
                 )
 
                 # log a Matplotlib Figure showing the model's predictions on a
@@ -110,22 +119,23 @@ def training(net, criterion, optimizer, trainloader, testloader, writer, epochs=
                 writer.add_figure(
                     "predictions vs. actuals",
                     plot_classes_preds(net, inputs, labels),
-                    global_step=epoch * len(trainloader) + i,
+                    global_step=epoch * len(loader) + i,
                 )
                 running_loss = 0.0
+
     print("Finished Training")
 
 
 def images_to_probs(net, images):
     """
     Generates predictions and corresponding probabilities from a trained
-    network and a list of images
+    network and a list of images.
     """
     output = net(images)
     # convert output probabilities to predicted class
     _, preds_tensor = torch.max(output, 1)
     preds = np.squeeze(preds_tensor.numpy())
-    return preds, [F.softmax(el, dim=0)[i].item() for i, el in zip(preds, output)]
+    return preds, [softmax(el, dim=0)[i].item() for i, el in zip(preds, output)]
 
 
 def plot_classes_preds(net, images, labels):
@@ -137,7 +147,7 @@ def plot_classes_preds(net, images, labels):
     Uses the "images_to_probs" function.
     """
     preds, probs = images_to_probs(net, images)
-    classes = [i for i in range(10)]
+    classes = list(range(10))
     # plot the images in the batch, along with predicted and true labels
     fig = plt.figure(figsize=(12, 48))
     for idx in np.arange(4):
@@ -153,12 +163,12 @@ def plot_classes_preds(net, images, labels):
 
 
 if __name__ == "__main__":
-    net = Net()
-    criterion = nn.CrossEntropyLoss()
-    optimizer = Cocob(net.parameters())
-    trainloader, testloader = loaders()
+    neural_net = Net()
+    loss_fun = nn.CrossEntropyLoss()
+    torch_opt = Cocob(neural_net.parameters())
+    train_loader, test_loader = loaders()
     p = Path(__file__).parent.absolute() / "runs/MNIST_experiment_{}".format(
-        type(optimizer).__name__
+        type(torch_opt).__name__
     )
-    writer = SummaryWriter(p)
-    training(net, criterion, optimizer, trainloader, testloader, writer)
+    tb_writer = SummaryWriter(p)
+    training(neural_net, loss_fun, torch_opt, train_loader, tb_writer)

@@ -1,3 +1,6 @@
+from collections import defaultdict
+from functools import partial
+from pathlib import Path
 import torch
 import matplotlib.pyplot as plt
 import yaml
@@ -5,12 +8,10 @@ from ray import tune
 from torch.optim import SGD, Adam
 from optimal_pytorch.coin_betting.torch import Cocob
 from optimal_pytorch.test_functions.loss import Absolute, Sinusoidal, Ackley
-from pathlib import Path
-from functools import partial
-from collections import defaultdict
 
 
-def experiment(config):
+def experiment(config, loss_select, opt_select):
+    """Run optimizers with all configurations from config"""
     losses = config["loss"]
     optimizers = config["optimizer"]
     for loss in losses:
@@ -21,10 +22,10 @@ def experiment(config):
             exp_config = {
                 **loss_config,
                 **opt_config,
-                "hyperparams": [i for i in opt_params],
+                "hyperparams": list(opt_params.keys()),
             }
-            loss_fn = eval(loss)
-            optimizer = eval(opt)
+            loss_fn = loss_select[loss]
+            optimizer = opt_select[opt]
             run = partial(single_run, loss=loss_fn, opt=optimizer)
             analysis = tune.run(
                 run,
@@ -39,6 +40,7 @@ def experiment(config):
 
 
 def single_run(config, loss, opt):
+    """Single experiment with ray."""
     hyperparams = {i: config[i] for i in config["hyperparams"]}
     x = torch.tensor(config["x1"]).requires_grad_()
     loss_fn = loss()
@@ -61,23 +63,25 @@ if __name__ == "__main__":
     # read config file
     config_file = Path(__file__).parent.absolute() / "config.yaml"
     with config_file.open() as stream:
-        config = yaml.safe_load(stream)
+        configuration = yaml.safe_load(stream)
+    loss_dict = {"Absolute": Absolute, "Sinusoidal": Sinusoidal, "Ackley": Ackley}
+    opt_dict = {"SGD": SGD, "Cocob": Cocob, "Adam": Adam}
 
     # run experiments
     best = defaultdict(dict)
-    for result in experiment(config):
-        analysis, opt, loss = result
-        best[loss][opt] = analysis.best_dataframe
+    for result in experiment(configuration, loss_dict, opt_dict):
+        single_analysis, opt_name, loss_name = result
+        best[loss_name][opt_name] = single_analysis.best_dataframe
 
     # plot results
-    for loss in best:
+    for loss_name in best:
         ax = None
         names = []
-        for opt in best[loss]:
-            ax = best[loss][opt].avg_subopt_gap.plot(ax=ax)
-            names.append(opt)
+        for opt_name in best[loss_name]:
+            ax = best[loss_name][opt_name].avg_subopt_gap.plot(ax=ax)
+            names.append(opt_name)
         ax.set_xlabel("Iteration")
         ax.set_ylabel("Avg subopt gap")
-        ax.set_title(f"{loss} loss")
+        ax.set_title(f"{loss_name} loss")
         ax.legend(names)
         plt.show()

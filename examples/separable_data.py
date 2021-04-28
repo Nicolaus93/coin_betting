@@ -1,9 +1,9 @@
+from functools import partial
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import numpy as np
 from sklearn import datasets
-from functools import partial
 from optimal_pytorch.coin_betting.torch import (
     Recursive,
     ONSBet,
@@ -13,8 +13,11 @@ from optimal_pytorch.coin_betting.torch import (
 )
 
 
-def log_loss(w, x):
-    return torch.log(1 + torch.exp(w.dot(x)))
+def log_loss(weights, features):
+    """
+    Compute logistic loss function.
+    """
+    return torch.log(1 + torch.exp(weights.dot(features)))
 
 
 if __name__ == "__main__":
