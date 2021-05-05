@@ -16,4 +16,7 @@ generated-members=numpy.*,torch.*
 # can either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once).
-disable=E0611,R0801,E1102,C0114,C0103,E0401,W0632
+disable=E0611,R0801,E1102,C0114,C0103,E0401,W0632,R0914
+
+[MASTER]
+ignore=rosenbrock.py
