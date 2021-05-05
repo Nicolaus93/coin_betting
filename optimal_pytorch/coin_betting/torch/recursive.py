@@ -22,8 +22,6 @@ class Recursive(Optimizer):
         params (iterable): iterable of parameters to optimize or dicts defining
             parameter groups.
         eps (float): regret at 0 of outer optimizer (initial wealth).
-        eps_v (float): regret at 0 of each coordinate of inner optimizer
-            (per-coordinate initial wealth).
         inner (Callable): Inner optimizer, default set to Scinol2. Scinol2 corresponds
             to a scale-invariant online learning algorithm
             (https://arxiv.org/pdf/1902.07528.pdf).
@@ -37,26 +35,23 @@ class Recursive(Optimizer):
 
         Arguments:
             coin (torch.Tensor): outcome of the coin in [-1, 1]
-            bet_fraction (torch.Tensor): fraction of the wealth used for the current bet.
+            bet_fraction (torch.Tensor): fraction of wealth used for the current bet.
         """
         return -torch.log(1 - coin.view(-1) @ bet_fraction.view(-1))
 
     def __init__(
         self,
         params: _params_t,
-        eps: float = 1.,
-        eps_v: float = 1.0,
+        eps: float = 1.0,
         inner: Callable = Scinol2,
-        momentum: float = 0.
+        momentum: float = 0.0,
     ):
         if eps < 0.0:
             raise ValueError("Invalid eps (outer wealth) value: {}".format(eps))
-        if eps_v < 0.0:
-            raise ValueError("Invalid eps_v (inner wealth) value: {}".format(eps_v))
         if momentum < 0.0:
             raise ValueError("Invalid momentum value: {}".format(momentum))
 
-        defaults = dict(eps=eps, inner=inner, eps_v=eps_v, momentum=momentum)
+        defaults = dict(eps=eps, inner=inner, momentum=momentum)
         super().__init__(params, defaults)
 
         for group in self.param_groups:  # State initialization
@@ -66,12 +61,17 @@ class Recursive(Optimizer):
             for p in group["params"]:
                 state = self.state[p]
                 state["initial_value"] = p.clone().detach()
-                state["betting_fraction"] = torch.zeros_like(p, memory_format=torch.preserve_format).requires_grad_()
-                state["inner_opt"] = inner([state["betting_fraction"]])  # NOTE: we create an inner optimizer for every group
+                state["betting_fraction"] = torch.zeros_like(
+                    p, memory_format=torch.preserve_format
+                ).requires_grad_()
+                # NOTE: we create an inner optimizer for every group
+                state["inner_opt"] = inner([state["betting_fraction"]])
                 state["wealth"] = torch.tensor(eps)
                 state["max_grad"] = torch.tensor(1e-8)
                 if momentum > 0:
-                    state["weighted_params_sum"] = torch.zeros_like(p, memory_format=torch.preserve_format)
+                    state["weighted_params_sum"] = torch.zeros_like(
+                        p, memory_format=torch.preserve_format
+                    )
                     state["grad_norm_sum"] = 1
 
     def step(self, closure: Optional[Callable[[], float]] = None) -> Optional[float]:
@@ -116,7 +116,7 @@ class Recursive(Optimizer):
                 # pass gradients to inner and update state
                 wealth.add_(grad.view(-1) @ (p.view(-1) - x0.view(-1)), alpha=-1)
                 if inner_opt.__class__.__name__ == "Scinol2":
-                    inner_opt.update(grad)
+                    inner_opt.observe(grad)
                 inner_opt.zero_grad()
                 with torch.no_grad():
                     # we need to ensure that betting_fraction € [-0.5, 0.5]
@@ -131,8 +131,14 @@ class Recursive(Optimizer):
                 if momentum > 0:
                     next_offset = wealth * betting_fraction
                     squared_grad_norm = grad_norm.pow(2).item()
-                    state["grad_norm_sum"] = squared_grad_norm + momentum * state["grad_norm_sum"]
-                    avg_offset = squared_grad_norm * (next_offset - state["weighted_params_sum"]) / state["grad_norm_sum"]
+                    state["grad_norm_sum"] = (
+                        squared_grad_norm + momentum * state["grad_norm_sum"]
+                    )
+                    avg_offset = (
+                        squared_grad_norm
+                        * (next_offset - state["weighted_params_sum"])
+                        / state["grad_norm_sum"]
+                    )
                     state["weighted_params_sum"] = avg_offset
                     p.data.add_(avg_offset)
 
