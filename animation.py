@@ -8,7 +8,7 @@ import torch
 import plotly.graph_objects as go
 from torch.optim import SGD, Adam
 from plotly.subplots import make_subplots
-from optimal_pytorch.coin_betting.torch import Cocob, Regralizer, Recursive
+from optimal_pytorch.coin_betting.torch import Cocob, Regralizer, Recursive, Scinol2
 
 plt.style.use("seaborn-white")
 
@@ -220,14 +220,19 @@ def frame_selector_ui():
 
     # The user can pick which type of object to search for.
     algo = st.sidebar.selectbox(
-        "Which algo?", ["SGD", "Adam", "Cocob", "Regralizer", "Recursive"], 0
+        "Optimizer?", ["SGD", "Adam", "Cocob", "Regralizer", "Recursive"], 0
     )
 
     params = {}
     if algo in ["Cocob", "Recursive"]:
         # Choose initial wealth
-        eps = st.sidebar.slider("Choose initial wealth:", 0.1, 10.0, step=0.1)
-        params["eps"] = eps
+        # eps = st.sidebar.slider("Choose initial wealth:", 0.1, 10.0, step=0.1)
+        # params["eps"] = eps
+        if algo == "Recursive":
+            momentum = st.sidebar.selectbox("Momentum:", [0, 0.9, 0.99])
+            params["momentum"] = momentum
+            inner = st.sidebar.selectbox("Inner:", ["Scinol2", "Cocob"])
+            params["inner"] = Scinol2 if inner == "Scinol2" else Cocob
     else:
         lr = st.sidebar.slider("Learning rate:", 0.1, 1.0, value=0.1, step=0.1)
         params["lr"] = lr
@@ -295,7 +300,7 @@ def run_the_app(function, selected_algo, selected_params, iterations):
         "SGD": SGD,
         "Adam": Adam,
         "Regralizer": Regralizer,
-        "Recursive": Recursive,
+        "Recursive": Recursive
     }
     functions = {
         "Rosenbrock": rosenbrock,
