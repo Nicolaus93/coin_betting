@@ -1,6 +1,7 @@
 import pytest
 import torch
 import optimal_pytorch.coin_betting.torch as cb
+from functools import partial
 
 
 @pytest.fixture(autouse=True)
@@ -26,46 +27,53 @@ def test_invalid_eps(optimizer):
 
 
 optimizers = [
-    cb.Cocob,
-    cb.Recursive,
-    cb.ONSBet,
-    cb.Regralizer,
-    # cb.SGDOL,
-    # cb.Scinol2
+    (cb.Cocob, 'Cocob'),
+    (partial(cb.Recursive, inner=cb.Cocob), 'Recursive'),
+    (cb.ONSBet, 'ONSBet'),
+    (partial(cb.Regralizer, lr=.1), 'Regralizer'),
+    (cb.SGDOL, 'SGDOL'),
+    (cb.Scinol2, 'Scinol2')
 ]
 
 
-@pytest.mark.parametrize('optimizer', optimizers, ids=lambda x: f'{x.__name__}')
+@pytest.mark.parametrize('optimizer', optimizers, ids=lambda x: x[1])
 def test_step(optimizer):
 
-    weight = torch.tensor([2., 2.]).requires_grad_()
+    algo, name = optimizer
+    weights = torch.tensor([2., 2.]).requires_grad_()
     bias = torch.tensor(1.).requires_grad_()
-    input = torch.tensor([1., 1.])
+    features = torch.tensor([1., 1.])
+    opt = algo([weights, bias])
+    n = 3 if name == 'SGDOL' else 2
+    loss_values = []
+    for _ in range(n):
+        if name == 'Scinol2':
+            opt.observe(features)
+        loss = (weights @ features + bias).pow(2)
+        loss_values.append(loss.item())
+        loss.backward()
+        opt.step()
 
-    opt = optimizer([weight, bias])
-    loss = (weight @ input + bias).pow(2).sum()
-    initial_value = loss.item()
-    loss.backward()
-    opt.step()
-    loss = (weight @ input + bias).pow(2).sum()
-    assert loss.item() < initial_value
+    assert loss_values[-1] < loss_values[-2]
 
 
 not_sparse = [
-    cb.Cocob,
-    cb.ONSBet,
-    cb.Recursive,
-    cb.Regralizer,
-    cb.Scinol2,
-    cb.SGDOL
+    (cb.Cocob, 'Cocob'),
+    (cb.ONSBet, 'ONSBet'),
+    (cb.Recursive, 'Recursive'),
+    (partial(cb.Regralizer, lr=.1), 'Regralizer'),
+    (cb.Scinol2, 'Scinol2'),
+    (cb.SGDOL, 'SGDOL')
 ]
 
-@pytest.mark.parametrize('optimizer', not_sparse, ids=lambda x: f'{x.__name__}')
+@pytest.mark.parametrize('optimizer', not_sparse, ids=lambda x: x[1])
 def test_sparse_not_supported(optimizer):
+
+    algo, name = optimizer
     param = torch.randn(1, 1).requires_grad_(True)
     grad = torch.randn(1, 1).to_sparse()
     param.grad = grad
-    opt = optimizer([param])
+    opt = algo([param])
     opt.zero_grad()
     with pytest.raises(RuntimeError) as ctx:
         opt.step()
