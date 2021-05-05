@@ -1,7 +1,6 @@
 from functools import partial
 import matplotlib.pyplot as plt
 import torch
-import torch.nn as nn
 import numpy as np
 from sklearn import datasets
 from optimal_pytorch.coin_betting.torch import (
@@ -30,14 +29,13 @@ if __name__ == "__main__":
         n_samples=N, centers=2, n_features=dim, center_box=(0, 10), random_state=42
     )
     X = np.hstack((X, np.ones((len(X), 1))))
-    criterion = nn.CrossEntropyLoss()
     algos = [
         ONSBet,
         Cocob,
         Regralizer,
         Scinol2,
         Recursive,
-        partial(Recursive, inner=Cocob),
+        partial(Recursive, inner=Cocob, eps=10.0),
     ]
     fig = plt.figure()
     ax1 = fig.add_subplot(321)
@@ -49,7 +47,7 @@ if __name__ == "__main__":
     axes = [ax1, ax2, ax3, ax4, ax5, ax6]
 
     for i, opt in enumerate(algos):
-        model = torch.zeros(dim + 1, requires_grad=True)
+        model = torch.ones(dim + 1, requires_grad=True)
         optimizer = opt([model])
         print(optimizer.__class__.__name__)
         for _ in range(epochs):
