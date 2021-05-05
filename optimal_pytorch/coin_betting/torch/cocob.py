@@ -38,9 +38,11 @@ class Cocob(Optimizer):
             for p in group["params"]:
                 state = self.state[p]
                 state["w1"] = p.clone().detach()  # initial model
-                state["theta"] = torch.zeros_like(p)  # sum of the gradients
-                state["Gt"] = torch.zeros_like(p)  # sum of abs value of gradients
-                state["Lt"] = torch.full_like(p, 1e-8)  # maximum observed scale
+                state["grad_sum"] = torch.zeros_like(p)  # sum of the gradients
+                state["abs_grad_sum"] = torch.zeros_like(
+                    p
+                )  # sum of abs value of gradients
+                state["max_scale"] = torch.full_like(p, 1e-8)  # maximum observed scale
                 state["reward"] = torch.zeros_like(p)  # cumulative reward
 
     @torch.no_grad()
@@ -69,21 +71,21 @@ class Cocob(Optimizer):
                 # Retrieve parameters
                 state = self.state[p]
                 w1 = state["w1"]
-                theta = state["theta"]
-                Gt = state["Gt"]
-                Lt = state["Lt"]
+                grad_sum = state["grad_sum"]
+                abs_grad_sum = state["abs_grad_sum"]
+                max_scale = state["max_scale"]
                 reward = state["reward"]
 
                 # Update parameters (inplace)
                 abs_grad = torch.abs(grad)
-                torch.max(Lt, abs_grad, out=Lt)
-                theta.add_(grad)
-                Gt.add_(abs_grad)
+                torch.max(max_scale, abs_grad, out=max_scale)
+                grad_sum.add_(grad)
+                abs_grad_sum.add_(abs_grad)
                 torch.max(
                     reward + (p.data - w1) * grad, torch.zeros_like(reward), out=reward
                 )
-                p.data = w1 + theta / (Lt * (torch.max(Gt + Lt, alpha * Lt))) * (
-                    reward + Lt
-                )
+                p.data = w1 + grad_sum / (
+                    max_scale * (torch.max(abs_grad_sum + max_scale, alpha * max_scale))
+                ) * (reward + max_scale)
 
         return loss
